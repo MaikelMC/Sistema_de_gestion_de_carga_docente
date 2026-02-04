@@ -1,0 +1,359 @@
+📦 ESTRUCTURA COMPLETA DEL PROYECTO
+===================================
+
+sist_gestion/
+│
+├── 📄 Archivos de Configuración
+│   ├── package.json                 ← Dependencias del proyecto
+│   ├── vite.config.js              ← Configuración de Vite
+│   ├── eslint.config.js            ← Linter de código
+│   ├── index.html                  ← HTML principal
+│   └── .gitignore
+│
+├── 📁 src/
+│   │
+│   ├── 🎨 Estilos Globales
+│   │   ├── App.css                 ← Estilos principales
+│   │   ├── index.css               ← Estilos base/reset
+│   │   │
+│   │   └── 📁 styles/
+│   │       └── forms.css           ← Estilos de formularios
+│   │
+│   ├── 🔐 Autenticación
+│   │   ├── App.jsx                 ← Router principal
+│   │   │
+│   │   └── 📁 components/auth/
+│   │       ├── LoginPage.jsx       ← Página de login
+│   │       ├── RegisterPage.jsx    ← Página de registro
+│   │       └── Auth.css            ← Estilos de autenticación
+│   │
+│   ├── 🏗️ Componentes Base
+│   │   └── 📁 components/common/
+│   │       ├── Layout.jsx          ← Header, Sidebar, MainLayout
+│   │       ├── Layout.css          ← Estilos de layout
+│   │       ├── Table.jsx           ← Table, Modal, Alert
+│   │       ├── Table.css           ← Estilos de tabla
+│   │       └── WelcomeCard.jsx     ← Card de bienvenida
+│   │
+│   ├── 📊 Páginas/Dashboards
+│   │   └── 📁 pages/
+│   │       │
+│   │       ├── 👤 admin/
+│   │       │   ├── AdminDashboard.jsx     ← Dashboard de Administrador
+│   │       │   └── JefeDepartamentoDashboard.jsx ← (bonus)
+│   │       │
+│   │       ├── 📈 director/
+│   │       │   └── DirectorDashboard.jsx  ← Dashboard de Director
+│   │       │
+│   │       ├── 👨‍🏫 jefe-disciplina/
+│   │       │   └── JefeDisciplinaDashboard.jsx ← Dashboard de Jefe
+│   │       │
+│   │       ├── 🎓 vicedecano/
+│   │       │   └── VicedeanoDashboard.jsx ← Dashboard de Vicedecano
+│   │       │
+│   │       └── Dashboard.css       ← Estilos compartidos de dashboards
+│   │
+│   ├── 🧠 Estado Global (Context)
+│   │   └── 📁 context/
+│   │       ├── AuthContext.jsx     ← Manejo de autenticación
+│   │       └── DataContext.jsx     ← Manejo de datos
+│   │
+│   ├── 🔧 Utilidades
+│   │   └── 📁 utils/
+│   │       ├── ProtectedRoute.jsx  ← Componente para rutas protegidas
+│   │       └── helpers.js          ← Funciones utilitarias
+│   │
+│   ├── 🌐 Servicios (para API)
+│   │   └── 📁 services/
+│   │       ├── api.js              ← Configuración axios
+│   │       ├── authService.js      ← Servicio de autenticación
+│   │       └── professorService.js ← Servicio de profesores
+│   │
+│   ├── ⚙️ Configuración
+│   │   └── config.js               ← Constantes y configuración
+│   │
+│   └── 🎬 Entry Point
+│       └── main.jsx                ← Punto de entrada React
+│
+├── 📁 public/
+│   └── vite.svg                   ← Assets estáticos
+│
+├── 📖 Documentación
+│   ├── README.md                  ← Incluido por Vite
+│   ├── SISTEMA_COMPLETO.md        ← Documentación completa
+│   ├── GUIA_RAPIDA.md             ← Guía de referencia rápida
+│   ├── INSTALAR.sh                ← Script de instalación
+│   └── ESTRUCTURA_PROYECTO.txt    ← Este archivo
+│
+└── 🐙 Git
+    └── .gitignore                 ← Archivos ignorados
+
+
+═══════════════════════════════════════════════════════════════
+CARACTERÍSTICAS IMPLEMENTADAS
+═══════════════════════════════════════════════════════════════
+
+✅ AUTENTICACIÓN
+   • Login y Registro
+   • Manejo de sesiones con cookies
+   • Protección de rutas
+   • Validación de credenciales
+
+✅ ROLES Y PERMISOS
+   • 5 Roles diferentes (Admin, Director, Jefe, Vicedecano)
+   • Control de acceso basado en roles (RBAC)
+   • Permisos específicos por rol
+
+✅ GESTIÓN DE PROFESORES
+   • Crear profesores
+   • Editar información
+   • Eliminar profesores
+   • Ver lista completa
+   • Filtrar por disciplina, facultad, asignatura
+
+✅ REPORTES Y EXPORTACIÓN
+   • Exportar a CSV
+   • Filtros avanzados
+   • Descargas por rol
+   • Múltiples opciones de agrupación
+
+✅ SISTEMA DE COMENTARIOS
+   • Comentarios obligatorios en cambios
+   • Registro de modificaciones
+   • Visualización por rol
+   • Timestamps automáticos
+
+✅ INTERFAZ DE USUARIO
+   • Diseño profesional (Azul y Blanco)
+   • Componentes reutilizables
+   • Responsive design
+   • Animaciones suaves
+   • Tema consistente
+
+✅ UTILIDADES
+   • Validaciones de formularios
+   • Manejo de errores
+   • Notificaciones (Alert)
+   • Búsqueda y paginación
+   • LocalStorage
+
+
+═══════════════════════════════════════════════════════════════
+DEPENDENCIAS INSTALADAS
+═══════════════════════════════════════════════════════════════
+
+PRODUCCIÓN:
+• react@^19.2.0              - Framework React
+• react-dom@^19.2.0          - DOM de React
+• react-router-dom@^6.x      - Enrutamiento
+• axios@^1.x                 - Cliente HTTP
+• js-cookie@^3.x             - Manejo de cookies
+
+DESARROLLO:
+• @vitejs/plugin-react@^5.1.1   - Plugin React para Vite
+• eslint@^9.39.1               - Linter
+• vite@^7.2.4                  - Bundler
+
+
+═══════════════════════════════════════════════════════════════
+RUTAS PRINCIPALES
+═══════════════════════════════════════════════════════════════
+
+Public Routes:
+GET  /login                    → Página de login
+GET  /register                 → Página de registro
+GET  /unauthorized             → Página de acceso denegado
+
+Protected Routes:
+GET  /dashboard                → Dashboard según rol
+GET  /dashboard/admin          → Dashboard admin
+GET  /dashboard/director       → Dashboard director
+GET  /dashboard/jefe           → Dashboard jefe
+GET  /dashboard/vicedecano     → Dashboard vicedecano
+
+Fallback:
+GET  /                         → Redirige a /dashboard
+GET  *                         → 404 Page not found
+
+
+═══════════════════════════════════════════════════════════════
+CONTEXTOS DISPONIBLES
+═══════════════════════════════════════════════════════════════
+
+AuthContext:
+├── user                 Objeto del usuario actual
+├── loading              Estado de carga
+├── error                Mensaje de error
+├── login(email, pwd)    Función para iniciar sesión
+├── register(data)       Función para registrarse
+├── logout()             Función para cerrar sesión
+└── isAuthenticated      Booleano de autenticación
+
+DataContext:
+├── professors           Array de profesores
+├── disciplines          Array de disciplinas
+├── comments             Array de comentarios
+├── messages             Array de mensajes
+├── addProfessor(prof)   Agregar profesor
+├── updateProfessor()    Actualizar profesor
+├── deleteProfessor()    Eliminar profesor
+├── addComment()         Agregar comentario
+├── addMessage()         Agregar mensaje
+└── get...ByXXX()       Funciones de filtrado
+
+
+═══════════════════════════════════════════════════════════════
+COMPONENTES DISPONIBLES
+═══════════════════════════════════════════════════════════════
+
+Layout Components:
+├── Header              Encabezado con usuario
+├── Sidebar             Navegación lateral
+├── MainLayout          Layout completo
+└── WelcomeCard         Tarjeta de bienvenida
+
+UI Components:
+├── Table               Tabla de datos
+├── Modal               Diálogo modal
+└── Alert               Notificación
+
+Auth Components:
+├── LoginPage           Página de login
+└── RegisterPage        Página de registro
+
+Dashboard Components:
+├── AdminDashboard
+├── DirectorDashboard
+├── JefeDisciplinaDashboard
+├── JefeDepartamentoDashboard
+└── VicedeanoDashboard
+
+
+═══════════════════════════════════════════════════════════════
+CREDENCIALES DE PRUEBA
+═══════════════════════════════════════════════════════════════
+
+Administrador
+  Email:      admin@uci.edu.cu
+  Contraseña: 123456
+  Función:    Gestión de usuarios y sistema
+
+Director
+  Email:      director@uci.edu.cu
+  Contraseña: 123456
+  Función:    Ver profesores, descargar reportes
+
+Jefe de Disciplina
+  Email:      jefe@uci.edu.cu
+  Contraseña: 123456
+  Función:    Gestionar profesores de su disciplina
+
+Vicedecano
+  Email:      vicedecano@uci.edu.cu
+  Contraseña: 123456
+  Función:    Acceso completo a todas las disciplinas
+
+
+═══════════════════════════════════════════════════════════════
+PRÓXIMOS PASOS (ROADMAP)
+═══════════════════════════════════════════════════════════════
+
+FASE 2 - Backend Integration:
+□ Conectar API real
+□ Implementar JWT
+□ Subir a servidor
+
+FASE 3 - Funcionalidades Avanzadas:
+□ Tests unitarios e integración
+□ Autenticación OAuth
+□ Two-factor authentication
+□ Backup de datos
+
+FASE 4 - Optimización:
+□ PWA (Progressive Web App)
+□ Service Workers
+□ Code Splitting
+□ Caché inteligente
+
+FASE 5 - Despliegue:
+□ CI/CD Pipeline
+□ Docker containers
+□ Deploy a producción
+□ Monitoreo y logs
+
+
+═══════════════════════════════════════════════════════════════
+COMANDOS ÚTILES
+═══════════════════════════════════════════════════════════════
+
+npm run dev       → Iniciar servidor desarrollo (http://localhost:5173)
+npm run build     → Compilar para producción
+npm run preview   → Ver build de producción localmente
+npm run lint      → Ejecutar linter
+
+Yarn (si prefieres):
+yarn dev          → Iniciar servidor desarrollo
+yarn build        → Compilar para producción
+yarn preview      → Ver build localmente
+yarn lint         → Ejecutar linter
+
+
+═══════════════════════════════════════════════════════════════
+TIPS Y BUENAS PRÁCTICAS
+═══════════════════════════════════════════════════════════════
+
+1. Siempre validar input del usuario
+2. Usar Context para estado global
+3. Componentes pequeños y reutilizables
+4. Mantener organización de carpetas
+5. Documentar código importante
+6. Hacer commits pequeños y frecuentes
+7. Probar en múltiples navegadores
+8. Verificar responsive en móvil
+9. Usar console.log para debug
+10. Limpiar console antes de producción
+
+
+═══════════════════════════════════════════════════════════════
+ARCHIVOS IMPORTANTES A REVISAR PRIMERO
+═══════════════════════════════════════════════════════════════
+
+1. src/App.jsx              → Punto de entrada, routing
+2. src/context/AuthContext.jsx    → Lógica de autenticación
+3. src/context/DataContext.jsx    → Datos de aplicación
+4. src/components/common/Layout.jsx  → Estructura base
+5. src/pages/admin/AdminDashboard.jsx → Ejemplo de dashboard
+6. src/config.js            → Configuración global
+
+
+═══════════════════════════════════════════════════════════════
+SOLUCIÓN DE PROBLEMAS COMUNES
+═══════════════════════════════════════════════════════════════
+
+❌ "Module not found"
+✅ npm install / npm ci
+
+❌ "Cannot find module react-router-dom"
+✅ npm install react-router-dom
+
+❌ "Blank page on load"
+✅ Revisar console del navegador
+✅ Verificar que el puerto 5173 está libre
+✅ Limpiar cache del navegador
+
+❌ "Styles no se cargan"
+✅ Revisar imports en App.jsx
+✅ Verificar ruta del archivo CSS
+✅ Comprobar que no hay errores en CSS
+
+❌ "Error al navegar"
+✅ Verificar que AuthProvider envuelve toda la app
+✅ Revisar rutas en App.jsx
+✅ Verificar ProtectedRoute
+
+═══════════════════════════════════════════════════════════════
+
+¡Sistema Listo Para Usar! 🚀
+Desarrollado con profesionalismo para UCI
+
+═══════════════════════════════════════════════════════════════

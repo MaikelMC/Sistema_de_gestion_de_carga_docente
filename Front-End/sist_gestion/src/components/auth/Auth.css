@@ -1,0 +1,835 @@
+/* 
+  Auth Styles - Sistema de Gestión de Carga Docente UCI
+  Diseño Moderno con Panel Lateral
+*/
+
+/* ==========================================================================
+   VARIABLES Y RESET
+   ========================================================================== */
+:root {
+  /* Tu paleta de colores */
+  --color-primary-dark: #182e31;
+  --color-primary: #0b3287;
+  --color-primary-light: #7daee0;
+  --color-accent: #99b843;
+  --color-neutral-dark: #466155;
+  --color-neutral-light: #b5d3ee;
+  
+  /* Colores derivados */
+  --color-text-dark: #182e31;
+  --color-text-medium: #466155;
+  --color-text-light: #5a7165;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-hover: #f1f5f9;
+  
+  /* Gradientes */
+  --gradient-primary: linear-gradient(135deg,    #31978d 0%, #468d96 100%);
+  --gradient-accent: linear-gradient(135deg,     #48cae4 50%, #53685e 100%);
+  --gradient-light: linear-gradient(135deg,     #023e8a 100%, #4ca6f5 100%);
+  
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  
+  /* Tipografía */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(24, 46, 49, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(24, 46, 49, 0.1), 0 2px 4px -1px rgba(24, 46, 49, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(24, 46, 49, 0.1), 0 4px 6px -2px rgba(24, 46, 49, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(24, 46, 49, 0.1), 0 10px 10px -5px rgba(24, 46, 49, 0.04);
+  
+  /* Transiciones */
+  --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================================== */
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-background);
+  font-family: var(--font-family);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   PANEL LATERAL - PARA AMBAS PÁGINAS
+   ========================================================================== */
+.auth-sidebar {
+    position: relative;
+  width: 45%;
+  min-height: 100vh;
+  
+  padding: var(--spacing-3xl);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  color: white;
+  overflow: hidden;
+  z-index: 1;
+  border-radius: 8px;
+}
+
+/* Efecto de superposición sutil */
+.auth-sidebar::before {
+    content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: 60%, cover;
+  background-position: center;
+  opacity: 0.15; /* Transparencia sutil */
+  z-index: -1;
+ 
+    
+}
+
+/* Patrón decorativo */
+.auth-sidebar::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(67, 5, 174, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+/* Contenido del sidebar */
+.sidebar-content {
+  max-width: 440px;
+  position: relative;
+  z-index: 2;
+  animation: slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar-content h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  margin: 0 0 var(--spacing-lg) 0;
+  line-height: 1.2;
+  color: white;
+  letter-spacing: -0.025em;
+}
+
+.sidebar-content .subtitle {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin: 0 0 var(--spacing-md) 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-content p {
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+  margin: 0 0 var(--spacing-2xl) 0;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 90%;
+}
+
+/* Badge UCI en sidebar */
+.uci-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.15);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  margin-top: var(--spacing-xl);
+}
+
+.uci-badge span {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: white;
+}
+
+/* ==========================================================================
+   PANEL DE FORMULARIO
+   ========================================================================== */
+.auth-form-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-2xl);
+  background: var(--color-surface);
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Contenedor del formulario */
+.auth-form-container {
+  width: 100%;
+  max-width: 440px;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Encabezado del formulario */
+.form-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.form-header h2 {
+  font-size: var(--font-size-2xl);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  margin: 0 0 var(--spacing-sm) 0;
+  letter-spacing: -0.025em;
+}
+
+.form-header p {
+  color: var(--color-text-medium);
+  font-size: var(--font-size-base);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   FORMULARIOS (COMPARTIDO)
+   ========================================================================== */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-group label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.form-group label.required::after {
+  content: '*';
+  color: #dc2626;
+  font-size: 0.875em;
+  margin-left: 2px;
+}
+
+/* Inputs modernos */
+.form-group input,
+.form-group select {
+  padding: calc(var(--spacing-md) + 2px) var(--spacing-lg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  transition: all var(--transition-fast);
+  background-color: var(--color-surface);
+  color: var(--color-text-dark);
+  font-weight: 500;
+  width: 100%;
+  outline: none;
+}
+
+.form-group input::placeholder,
+.form-group select::placeholder {
+  color: var(--color-text-light);
+  font-weight: 400;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface);
+  box-shadow: 
+    0 0 0 4px rgba(11, 50, 135, 0.1),
+    var(--shadow-sm);
+}
+
+.form-group input:hover:not(:focus),
+.form-group select:hover:not(:focus) {
+  border-color: var(--color-primary-light);
+}
+
+/* Select específico */
+.form-group select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23466155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-lg) center;
+  background-size: 16px;
+  padding-right: calc(var(--spacing-lg) * 2);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   BOTONES
+   ========================================================================== */
+.auth-button {
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: linear-gradient(135deg, 
+    var(--color-primary) 0%, 
+      #48cae4 50%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-top: var(--spacing-md);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.3px;
+  box-shadow: 
+    0 4px 6px -1px rgba(11, 50, 135, 0.2),
+    0 2px 4px -1px rgba(11, 50, 135, 0.1);
+  width: 100%;
+}
+
+.auth-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 15px -3px rgba(11, 50, 135, 0.25),
+    0 4px 6px -2px rgba(11, 50, 135, 0.15);
+  background: linear-gradient(135deg, 
+         #023e8a 50%, 
+    var(--color-primary) 100%);
+}
+
+.auth-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 
+    0 2px 4px -1px rgba(11, 50, 135, 0.2),
+    0 1px 2px -1px rgba(11, 50, 135, 0.1);
+}
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Botón alternativo para Register */
+.auth-button.register {
+  background: linear-gradient(135deg, 
+    #3042a7 50%
+    #020a3a 100%);
+  box-shadow: 
+    0 4px 6px -1px rgba(153, 184, 67, 0.2),
+    0 2px 4px -1px rgba(153, 184, 67, 0.1);
+}
+
+.auth-button.register:hover:not(:disabled) {
+  background: linear-gradient(135deg, 
+     #020a3a   50%
+    #364ab9 100%, 
+    );
+  box-shadow: 
+    0 10px 15px -3px rgba(153, 184, 67, 0.25),
+    0 4px 6px -2px rgba(153, 184, 67, 0.15);
+}
+
+/* Estado de carga */
+.auth-button.loading {
+  color: transparent;
+  position: relative;
+}
+
+.auth-button.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ==========================================================================
+   ENLACES DE NAVEGACIÓN
+   ========================================================================== */
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.auth-link {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-medium);
+  margin: 0;
+}
+
+.auth-link a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  position: relative;
+  transition: color var(--transition-fast);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.auth-link a:hover {
+  color: var(--color-primary-dark);
+  background-color: var(--color-hover);
+}
+
+/* Enlace de "¿Olvidaste tu contraseña?" */
+.forgot-password {
+  text-align: right;
+  margin-top: var(--spacing-sm);
+}
+
+.forgot-password a {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-light);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.forgot-password a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   MENSAJES DE ERROR/ÉXITO
+   ========================================================================== */
+.error-message {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, 
+    rgba(220, 38, 38, 0.05) 0%, 
+    rgba(220, 38, 38, 0.02) 100%);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+  position: relative;
+  border-left: 4px solid #dc2626;
+  margin-bottom: var(--spacing-md);
+}
+
+.error-message::before {
+  content: '!';
+  position: absolute;
+  left: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #dc2626;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+.success-message {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, 
+    rgba(34, 197, 94, 0.05) 0%, 
+    rgba(34, 197, 94, 0.02) 100%);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+  position: relative;
+  border-left: 4px solid #16a34a;
+  margin-bottom: var(--spacing-md);
+}
+
+.success-message::before {
+  content: '✓';
+  position: absolute;
+  left: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #16a34a;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.75rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .auth-container {
+    flex-direction: column;
+  }
+  
+   
+  .sidebar-content {
+    max-width: 600px;
+  }
+  
+  .sidebar-content p {
+    max-width: 100%;
+  }
+  
+  .auth-form-panel {
+    padding: var(--spacing-xl);
+    min-height: 60vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-sidebar {
+    min-height: 35vh;
+    padding: var(--spacing-xl);
+  }
+  
+  .sidebar-content h1 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .sidebar-content .subtitle {
+    font-size: var(--font-size-lg);
+  }
+  
+  .sidebar-content p {
+    font-size: var(--font-size-base);
+  }
+  
+  .auth-form-panel {
+    padding: var(--spacing-lg);
+  }
+  
+  .form-header h2 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+  
+  .auth-button {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-sidebar {
+    min-height: 30vh;
+    padding: var(--spacing-lg);
+  }
+  
+  .sidebar-content h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .uci-badge {
+    padding: var(--spacing-xs) var(--spacing-md);
+  }
+  
+  .auth-form-panel {
+    padding: var(--spacing-md);
+  }
+  
+  .auth-form {
+    gap: var(--spacing-md);
+  }
+}
+
+/* ==========================================================================
+   ESTILOS ESPECÍFICOS PARA CADA PÁGINA
+   ========================================================================== */
+
+/* Login Page específico */
+.login-page .auth-sidebar {
+  background: linear-gradient(135deg, #1b897e 0%,  #48cae4 50%,  #023e8a 100%)
+}
+
+/* Register Page específico */
+.register-page .auth-sidebar {
+  background: linear-gradient(135deg, #1b6cc9d7 0%, #1f2c72 50%, #020a3a 100%);
+}
+
+/* Ajustes específicos para el formulario de registro */
+.register-page .form-group {
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Indicador de fortaleza de contraseña */
+.password-strength {
+  margin-top: var(--spacing-xs);
+  height: 4px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.password-strength-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.password-strength-bar.weak { width: 25%; background-color: #dc2626; }
+.password-strength-bar.fair { width: 50%; background-color: #f59e0b; }
+.password-strength-bar.good { width: 75%; background-color: var(--color-accent); }
+.password-strength-bar.strong { width: 100%; background-color: #16a34a; }
+
+/* Animaciones de entrada para elementos del formulario */
+.auth-form > * {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.auth-form > *:nth-child(1) { animation-delay: 0.1s; }
+.auth-form > *:nth-child(2) { animation-delay: 0.2s; }
+.auth-form > *:nth-child(3) { animation-delay: 0.3s; }
+.auth-form > *:nth-child(4) { animation-delay: 0.4s; }
+.auth-form > *:nth-child(5) { animation-delay: 0.5s; }
+.auth-form > *:nth-child(6) { animation-delay: 0.6s; }
+.auth-form > *:nth-child(7) { animation-delay: 0.7s; }
+.auth-form > *:nth-child(8) { animation-delay: 0.8s; }
+
+/* ==========================================================================
+   ESTILOS PARA VALIDACIONES
+   ========================================================================== */
+
+/* Input con error */
+.input-error {
+  border-color: #dc2626 !important;
+  background-color: rgba(220, 38, 38, 0.05) !important;
+}
+
+.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Mensajes de validación */
+.validation-error,
+.validation-success {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.validation-error {
+  color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.1);
+  border-left: 3px solid #dc2626;
+}
+
+.validation-success {
+  color: #16a34a;
+  background-color: rgba(34, 197, 94, 0.1);
+  border-left: 3px solid #16a34a;
+}
+
+.error-icon,
+.success-icon {
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+/* Texto de ayuda */
+.input-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  margin-top: var(--spacing-xs);
+  font-style: italic;
+}
+
+/* Indicador de fortaleza de contraseña */
+.password-strength-container {
+  margin-top: var(--spacing-sm);
+}
+
+.strength-meter {
+  height: 6px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: var(--spacing-xs);
+}
+
+.strength-bar {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.strength-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-medium);
+}
+
+.strength-text strong {
+  font-weight: 600;
+}
+
+.strength-percentage {
+  font-weight: 700;
+  color: var(--color-text-dark);
+}
+
+/* Requisitos de contraseña */
+.password-requirements {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-hover);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.password-requirements h4 {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-dark);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-weight: 600;
+}
+
+.password-requirements ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xs);
+}
+
+@media (max-width: 768px) {
+  .password-requirements ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+.password-requirements li {
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) 0;
+}
+
+.password-requirements li.valid {
+  color: #16a34a;
+}
+
+.password-requirements li.invalid {
+  color: var(--color-text-light);
+}
+
+/* Estado del botón cuando hay errores */
+.auth-button:disabled:not(.loading) {
+  opacity: 0.5;
+  background: var(--color-border) !important;
+  cursor: not-allowed;
+}

@@ -1,0 +1,227 @@
+/* Filters & Forms Styles - Premium Professional Design */
+
+.filters-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  align-items: flex-end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-item label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-800);
+  margin-bottom: var(--spacing-sm);
+}
+
+.filter-item select,
+.filter-item input {
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-700);
+  transition: all var(--transition-fast);
+}
+
+.filter-item select:focus,
+.filter-item input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(26, 58, 82, 0.08);
+}
+
+.filter-item select:hover,
+.filter-item input:hover {
+  border-color: var(--color-neutral-400);
+}
+
+.filter-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-lg);
+}
+
+.filter-actions .btn {
+  flex: 1;
+  min-width: 150px;
+}
+
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+}
+
+.message-item {
+  padding: var(--spacing-lg);
+  background: white;
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--color-neutral-200);
+  transition: all var(--transition-fast);
+}
+
+.message-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateX(4px);
+}
+
+.message-author {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.message-text {
+  color: var(--color-neutral-700);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.5;
+}
+
+.message-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-500);
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #0052cc;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+}
+
+.form-group input:hover:not(:focus),
+.form-group select:hover:not(:focus),
+.form-group textarea:hover:not(:focus) {
+  border-color: #ccc;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-group input[type="checkbox"],
+.form-group input[type="radio"] {
+  width: auto;
+  margin-right: 8px;
+}
+
+.form-group-inline {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.form-group-inline > div {
+  flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filters-group {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+  }
+
+  .filter-actions .btn {
+    width: 100%;
+  }
+
+  .form-group-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-group-inline > div {
+    width: 100%;
+  }
+}
+
+/* Input variants */
+.input-small {
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.input-large {
+  font-size: 16px;
+  padding: 12px 14px;
+}
+
+.input-error {
+  border-color: #dc3545;
+  background-color: #fff5f5;
+}
+
+.input-success {
+  border-color: #28a745;
+  background-color: #f0fdf4;
+}
+
+.input-warning {
+  border-color: #ffc107;
+  background-color: #fffbf0;
+}
+
+/* Select styling */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 20px;
+  padding-right: 32px;
+}
+
+select:hover {
+  cursor: pointer;
+}

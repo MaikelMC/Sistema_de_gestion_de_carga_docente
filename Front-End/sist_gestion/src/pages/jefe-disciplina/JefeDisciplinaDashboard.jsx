@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MainLayout } from '../../components/common/Layout';
 import { Table, Modal } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
@@ -13,18 +13,49 @@ export const JefeDisciplinaDashboard = () => {
     name: '',
     email: '',
     department: '',
-    asignatura: '',
+    asignaturas: [],
     faculty: '',
     carrera: ''
   });
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
+  const [showAsignaturasDropdown, setShowAsignaturasDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   const sidebarItems = [
     { id: 'dashboard', icon: '📊', label: 'Dashboard', href: '/dashboard' },
     { id: 'manage', icon: '👥', label: 'Gestión de Profesores', href: '/jefe/gestion' },
     { id: 'messages', icon: '💬', label: 'Mensajes', href: '/jefe/mensajes' },
   ];
+    
+  // Opciones de asignaturas organizadas por categorías
+  const asignaturasOptions = [
+    { category: 'Práctica Profesional', items: ['ICI1', 'ICI2', 'PID1', 'PID2', 'PID3', 'PID4', 'PID5', 'MIC'] },
+    { category: ' Técnicas de Programación de Computadoras', items: ['IP1', 'IP2', 'ED1', 'ED2', 'Pweb'] },
+    { category: ' Ingeniería y Gestión de Software', items: ['SBD1', 'SBD2', 'ISW1', 'ISW2', 'GPI'] },
+    { category: 'Marxismo Leninismo', items: ['Filosofía', 'EP', 'TP', 'ECTS'] },
+    { category: 'Historia de Cuba', items: ['Historia de Cuba'] },
+    { category: 'Inteligencia Compuacional', items: ['MD1', 'MD2', 'PE', 'IO', 'IA', 'AA'] },
+    { category: ' Gestión Organizacional', items: ['FAGO', 'GPN'] },
+    { category: ' Sistemas Digitales', items: ['AC', 'SO', 'RSI1', 'RSI2'] },
+    { category: 'Matemática', items: ['Álgebra', 'M1', 'M2', 'M3'] },
+    { category: 'Física', items: ['Física'] },
+    { category: 'Educación Física', items: ['EF1', 'EF2', 'EF3', 'EF4'] }
+  ];
+
+  // Todas las asignaturas en un array plano para el select múltiple original (backup)
+   
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAsignaturasDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Validación en tiempo real
   const validateField = (name, value) => {
@@ -53,9 +84,16 @@ export const JefeDisciplinaDashboard = () => {
       
       case 'faculty':
       case 'department':
-      case 'asignatura':
         if (!value.trim()) {
           newErrors[name] = 'Este campo es obligatorio';
+        } else {
+          delete newErrors[name];
+        }
+        break;
+      
+      case 'asignaturas':
+        if (!value || value.length === 0) {
+          newErrors[name] = 'Selecciona al menos una asignatura';
         } else {
           delete newErrors[name];
         }
@@ -85,11 +123,15 @@ export const JefeDisciplinaDashboard = () => {
 
   // Validación completa del formulario
   const validateForm = () => {
-    const requiredFields = ['name', 'email', 'department', 'faculty', 'asignatura'];
+    const requiredFields = ['name', 'email', 'department', 'faculty', 'asignaturas'];
     const newErrors = {};
     
     requiredFields.forEach(field => {
-      if (!formData[field]?.trim()) {
+      if (field === 'asignaturas') {
+        if (!formData[field] || formData[field].length === 0) {
+          newErrors[field] = 'Selecciona al menos una asignatura';
+        }
+      } else if (!formData[field]?.trim()) {
         newErrors[field] = 'Este campo es obligatorio';
       }
     });
@@ -116,18 +158,62 @@ export const JefeDisciplinaDashboard = () => {
     setTimeout(() => setToast(null), 5000);
   };
 
+  // Manejar toggle de asignaturas
+  const toggleAsignatura = (asignatura) => {
+    const currentAsignaturas = [...formData.asignaturas];
+    const index = currentAsignaturas.indexOf(asignatura);
+    
+    if (index === -1) {
+      // Agregar
+      currentAsignaturas.push(asignatura);
+    } else {
+      // Remover
+      currentAsignaturas.splice(index, 1);
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      asignaturas: currentAsignaturas
+    }));
+    
+    validateField('asignaturas', currentAsignaturas);
+  };
+
+  // Seleccionar/deseleccionar todas las asignaturas de una categoría
+  const toggleCategory = (categoryItems) => {
+    const currentAsignaturas = [...formData.asignaturas];
+    const allSelected = categoryItems.every(item => currentAsignaturas.includes(item));
+    
+    let newAsignaturas;
+    if (allSelected) {
+      // Deseleccionar todas
+      newAsignaturas = currentAsignaturas.filter(item => !categoryItems.includes(item));
+    } else {
+      // Agregar las faltantes
+      newAsignaturas = [...new Set([...currentAsignaturas, ...categoryItems])];
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      asignaturas: newAsignaturas
+    }));
+    
+    validateField('asignaturas', newAsignaturas);
+  };
+
   const handleAddProfessor = () => {
     setEditingProf(null);
     setFormData({ 
       name: '', 
       email: '', 
       department: '', 
-      asignatura: '', 
+      asignaturas: [], 
       faculty: '', 
       carrera: '' 
     });
     setMessageText('');
     setErrors({});
+    setShowAsignaturasDropdown(false);
     setIsModalOpen(true);
   };
 
@@ -137,12 +223,13 @@ export const JefeDisciplinaDashboard = () => {
       name: prof.name || '',
       email: prof.email || '',
       department: prof.department || '',
-      asignatura: prof.asignatura || prof.subjects?.[0] || '',
+      asignaturas: prof.asignaturas || prof.subjects || [],
       faculty: prof.faculty || '',
       carrera: prof.carrera || ''
     });
     setMessageText('');
     setErrors({});
+    setShowAsignaturasDropdown(false);
     setIsModalOpen(true);
   };
 
@@ -161,7 +248,7 @@ export const JefeDisciplinaDashboard = () => {
 
     const professorData = {
       ...formData,
-      subjects: formData.asignatura ? [formData.asignatura] : []
+      subjects: formData.asignaturas
     };
 
     try {
@@ -183,6 +270,7 @@ export const JefeDisciplinaDashboard = () => {
       setIsModalOpen(false);
       setMessageText('');
       setErrors({});
+      setShowAsignaturasDropdown(false);
     } catch (error) {
       showToast('Error al guardar el profesor: ' + error.message, 'error');
     }
@@ -194,7 +282,10 @@ export const JefeDisciplinaDashboard = () => {
       ...prev,
       [name]: value
     }));
-    validateField(name, value);
+    
+    if (name !== 'asignaturas') {
+      validateField(name, value);
+    }
   };
 
   const handleMessageChange = (e) => {
@@ -211,7 +302,11 @@ export const JefeDisciplinaDashboard = () => {
     { key: 'name', label: 'Nombre' },
     { key: 'email', label: 'Email' },
     { key: 'department', label: 'Disciplina' },
-    { key: 'subjects', label: 'Asignaturas', render: (row) => row.subjects?.join(', ') || row.asignatura || 'N/A' },
+    { 
+      key: 'subjects', 
+      label: 'Asignaturas', 
+      render: (row) => row.subjects?.join(', ') || row.asignaturas?.join(', ') || 'N/A' 
+    },
     { key: 'faculty', label: 'Facultad' },
     { key: 'carrera', label: 'Carrera' },
   ];
@@ -226,7 +321,7 @@ export const JefeDisciplinaDashboard = () => {
 
   return (
     <MainLayout sidebarItems={sidebarItems}>
-      {/* Toast/Notificación flotante - DELANTE de todo */}
+      {/* Toast/Notificación flotante */}
       {toast && (
         <div className={`toast-notification toast-${toast.type}`}>
           <div className="toast-content">
@@ -264,7 +359,7 @@ export const JefeDisciplinaDashboard = () => {
         </div>
         <div className="stats-card">
           <div className="stat-number">
-            {[...new Set(professors.flatMap(p => p.subjects || (p.asignatura ? [p.asignatura] : [])))].length}
+            {[...new Set(professors.flatMap(p => p.subjects || p.asignaturas || []))].length}
           </div>
           <div className="stat-label">Asignaturas Asignadas</div>
         </div>
@@ -368,68 +463,130 @@ export const JefeDisciplinaDashboard = () => {
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="asignatura">Asignatura*</label>
-            <select
-              id="asignatura"
-              name="asignatura"
-              value={formData.asignatura}
-              onChange={handleInputChange}
-              onBlur={(e) => validateField('asignatura', e.target.value)}
-              className={errors.asignatura ? 'input-error' : ''}
-              aria-describedby={errors.asignatura ? 'asignatura-error' : undefined}
-              aria-invalid={!!errors.asignatura}
-            >
-              <option value="">Seleccionar una asignatura</option>
-              <option value="ICI1">ICI1</option>
-              <option value="ICI2">ICI2</option>
-              <option value="PID1">PID1</option>
-              <option value="PID2">PID2</option>
-              <option value="PID3">PID3</option>
-              <option value="PID4">PID4</option>
-              <option value="PID5">PID5</option>
-              <option value="MIC">MIC</option>
-              <option value="IP1">IP1</option>
-              <option value="IP2">IP2</option>
-              <option value="ED1">ED1</option>
-              <option value="ED2">ED2</option>
-              <option value="Pweb">Pweb</option>
-              <option value="SBD1">SBD1</option>
-              <option value="SBD2">SBD2</option>
-              <option value="ISW1">ISW1</option>
-              <option value="ISW2">ISW2</option>
-              <option value="GPI">GPI</option>
-              <option value="Filosofía">Filosofía</option>
-              <option value="EP">EP</option>
-              <option value="TP">TP</option>
-              <option value="ECTS">ECTS</option>
-              <option value="Historia de Cuba">Historia de Cuba</option>
-              <option value="MD1">MD1</option>
-              <option value="MD2">MD2</option>
-              <option value="PE">PE</option>
-              <option value="IO">IO</option>
-              <option value="IA">IA</option>
-              <option value="AA">AA</option>
-              <option value="FAGO">FAGO</option>
-              <option value="GPN">GPN</option>
-              <option value="AC">AC</option>
-              <option value="SO">SO</option>
-              <option value="RSI1">RSI1</option>
-              <option value="RSI2">RSI2</option>
-              <option value="Álgebra">Álgebra</option>
-              <option value="M1">M1</option>
-              <option value="M2">M2</option>
-              <option value="M3">M3</option>
-              <option value="Física">Física</option>
-              <option value="EF1">EF1</option>
-              <option value="EF2">EF2</option>
-              <option value="EF3">EF3</option>
-              <option value="EF4">EF4</option>
-            </select>
-            {errors.asignatura && (
-              <div id="asignatura-error" className="validation-error" role="alert">
+          {/* NUEVO: Multi-select con dropdown */}
+          <div className="form-group" ref={dropdownRef}>
+            <label htmlFor="asignaturas">Asignaturas*</label>
+            <div className="multi-select-container">
+              <div 
+                className={`multi-select-trigger ${errors.asignaturas ? 'input-error' : ''} ${showAsignaturasDropdown ? 'active' : ''}`}
+                onClick={() => setShowAsignaturasDropdown(!showAsignaturasDropdown)}
+                aria-expanded={showAsignaturasDropdown}
+                aria-describedby={errors.asignaturas ? 'asignaturas-error' : undefined}
+                aria-invalid={!!errors.asignaturas}
+              >
+                <div className="selected-items">
+                  {formData.asignaturas.length > 0 ? (
+                    <span className="selected-count-badge">
+                      {formData.asignaturas.length} asignatura(s) seleccionada(s)
+                    </span>
+                  ) : (
+                    <span className="placeholder">Selecciona asignaturas...</span>
+                  )}
+                </div>
+                <span className="dropdown-arrow">▼</span>
+              </div>
+              
+              {showAsignaturasDropdown && (
+                <div className="multi-select-dropdown">
+                  <div className="dropdown-header">
+                    <span className="dropdown-title">Selecciona las asignaturas</span>
+                    <button 
+                      type="button"
+                      className="clear-all-btn"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, asignaturas: [] }));
+                        validateField('asignaturas', []);
+                      }}
+                    >
+                      Limpiar todo
+                    </button>
+                  </div>
+                  
+                  <div className="dropdown-search">
+                    <input
+                      type="text"
+                      placeholder="Buscar asignaturas..."
+                      className="search-input"
+                      id="search-asignaturas"
+                    />
+                  </div>
+                  
+                  <div className="dropdown-content">
+                    {asignaturasOptions.map((category, index) => (
+                      <div key={index} className="category-section">
+                        <div className="category-header">
+                          <span className="category-title">{category.category}</span>
+                          <button
+                            type="button"
+                            className="category-toggle"
+                            onClick={() => toggleCategory(category.items)}
+                          >
+                            {category.items.every(item => formData.asignaturas.includes(item)) 
+                              ? 'Deseleccionar todas' 
+                              : 'Seleccionar todas'}
+                          </button>
+                        </div>
+                        <div className="category-items">
+                          {category.items.map((asignatura) => (
+                            <label key={asignatura} className="checkbox-item">
+                              <input
+                                type="checkbox"
+                                checked={formData.asignaturas.includes(asignatura)}
+                                onChange={() => toggleAsignatura(asignatura)}
+                                className="checkbox-input"
+                              />
+                              <span className="checkbox-custom"></span>
+                              <span className="checkbox-label">{asignatura}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="dropdown-footer">
+                    <span className="selected-total">
+                      Seleccionadas: <strong>{formData.asignaturas.length}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      className="done-btn"
+                      onClick={() => setShowAsignaturasDropdown(false)}
+                    >
+                      Listo
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {formData.asignaturas.length > 0 && (
+              <div className="selected-pills">
+                {formData.asignaturas.slice(0, 3).map((asignatura) => (
+                  <span key={asignatura} className="selected-pill">
+                    {asignatura}
+                    <button
+                      type="button"
+                      className="pill-remove"
+                      onClick={() => toggleAsignatura(asignatura)}
+                      aria-label={`Remover ${asignatura}`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                {formData.asignaturas.length > 3 && (
+                  <span className="pill-more">
+                    +{formData.asignaturas.length - 3} más
+                  </span>
+                )}
+              </div>
+            )}
+            
+            {errors.asignaturas && (
+              <div id="asignaturas-error" className="validation-error" role="alert">
                 <span className="error-icon">⚠</span>
-                {errors.asignatura}
+                {errors.asignaturas}
               </div>
             )}
           </div>

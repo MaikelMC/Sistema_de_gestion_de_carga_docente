@@ -31,7 +31,7 @@ import './components/common/Statistics.css';
 import './components/common/Tabs.css';
 import './components/auth/Auth.css';
 import './pages/admin/Dashboard.css';
-import './pages/director/Dashboard.css';
+import './pages/director/DashboardDirector.css';
 import './pages/director/DirectorViews.css';
 
 const DashboardRouter = () => {
@@ -82,6 +82,7 @@ function AppRoutes() {
       } />
 
       {/* Director routes */}
+      <Route path="/director/dashboard" element={<DirectorDashboard />} />
       <Route path="/director/profesores" element={
         <ProtectedRoute allowedRoles={['director']}>
           <DirectorProfesores />

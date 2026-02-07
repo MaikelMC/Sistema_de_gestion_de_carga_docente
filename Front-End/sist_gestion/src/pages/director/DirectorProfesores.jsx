@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MainLayout } from '../../components/common/Layout';
 import { DirectorProfessorsView } from './DirectorViews';
-import './Dashboard.css';
+import './DashboardDirector.css';
 
 export const DirectorProfesores = () => {
   const sidebarItems = [

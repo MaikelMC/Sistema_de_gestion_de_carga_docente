@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SearchFilter } from '../../components/common/SearchFilter';
 import { Table } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
-import './DirectorViews.css';
+import './DashboardDirector.css';
 
 export const DirectorProfessorsView = () => {
   const { professors, disciplines } = useData();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { MainLayout } from '../../components/common/Layout';
 import { DirectorMessagesView } from './DirectorViews';
-import './Dashboard.css';
+import './DashboardDirector.css';
 
 export const DirectorMensajes = () => {
   const sidebarItems = [

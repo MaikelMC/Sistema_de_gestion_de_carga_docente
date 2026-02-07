@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../auth/Auth.css';
@@ -13,7 +13,7 @@ export const RegisterPage = () => {
     disciplina: '',
     faculty: '',
     carrera: '',
-    asignatura:''
+    asignaturas: []
   });
   
   const [passwordStrength, setPasswordStrength] = useState({
@@ -22,38 +22,168 @@ export const RegisterPage = () => {
     hasUppercase: false,
     hasLowercase: false,
     hasSpecialChar: false,
-    strength: 0 // 0-100%
+    strength: 0
   });
   
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showAsignaturasDropdown, setShowAsignaturasDropdown] = useState(false);
+  const [dropdownDirection, setDropdownDirection] = useState('down'); // 'up' o 'down'
+  const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // Validación para nombre (no números)
-const validateName = (name) => {
-  const nameRegex = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/;
-  return nameRegex.test(name);
-};
+  // Lista de asignaturas organizadas por categorías
+  const asignaturasOptions = [
+    { category: 'Programación', items: ['ICI1', 'ICI2', 'PID1', 'PID2', 'PID3', 'PID4', 'PID5'] },
+    { category: 'Diseño Digital', items: ['MIC', 'IP1', 'IP2', 'ED1', 'ED2', 'Pweb'] },
+    { category: 'Bases de Datos', items: ['SBD1', 'SBD2'] },
+    { category: 'Software', items: ['ISW1', 'ISW2', 'GPI'] },
+    { category: 'Humanidades', items: ['Filosofía', 'EP', 'TP', 'ECTS', 'Historia de Cuba'] },
+    { category: 'Matemáticas', items: ['MD1', 'MD2', 'PE', 'IO', 'IA', 'AA', 'Álgebra', 'M1', 'M2', 'M3'] },
+    { category: 'Sistemas', items: ['FAGO', 'GPN', 'AC', 'SO'] },
+    { category: 'Redes', items: ['RSI1', 'RSI2'] },
+    { category: 'Física', items: ['Física', 'EF1', 'EF2', 'EF3', 'EF4'] }
+  ];
 
-// Validación de fortaleza de contraseña
-const checkPasswordStrength = (password) => {
-  const checks = {
-    hasMinLength: password.length >= 8,
-    hasNumber: /\d/.test(password),                    // Al menos un número
-    hasUppercase: /[A-Z]/.test(password),              // Al menos una mayúscula
-    hasLowercase: /[a-z]/.test(password),              // Al menos una minúscula
-    hasSpecialChar: /[^A-Za-z0-9]/.test(password)  // Cualquier cosa que no sea letra o número  .test(password) // Caracteres especiales
+  // Calcular la mejor dirección para el dropdown
+  const calculateDropdownDirection = () => {
+    if (!triggerRef.current) return 'down';
+    
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+    const dropdownHeight = 400; // Altura estimada del dropdown
+    
+    // Si hay más espacio abajo, abrir hacia abajo, sino hacia arriba
+    return spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove ? 'down' : 'up';
   };
 
-  const passedChecks = Object.values(checks).filter(Boolean).length;
-  const strength = (passedChecks / 5) * 100;
+  // Manejar apertura del dropdown
+  const handleDropdownToggle = () => {
+    if (!showAsignaturasDropdown) {
+      // Antes de abrir, calcular la mejor dirección
+      const direction = calculateDropdownDirection();
+      setDropdownDirection(direction);
+    }
+    setShowAsignaturasDropdown(!showAsignaturasDropdown);
+  };
 
-  return { ...checks, strength };
-};
+  // Cerrar dropdown al hacer click fuera o al presionar Escape
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAsignaturasDropdown(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setShowAsignaturasDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  // Scroll to dropdown cuando se abre
+  useEffect(() => {
+    if (showAsignaturasDropdown && triggerRef.current) {
+      // Hacer scroll suave hasta el dropdown si es necesario
+      triggerRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+  }, [showAsignaturasDropdown]);
+
+  // Validación para nombre (no números)
+  const validateName = (name) => {
+    const nameRegex = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/;
+    return nameRegex.test(name);
+  };
+
+  // Validación de fortaleza de contraseña
+  const checkPasswordStrength = (password) => {
+    const checks = {
+      hasMinLength: password.length >= 8,
+      hasNumber: /\d/.test(password),
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasSpecialChar: /[^A-Za-z0-9]/.test(password)
+    };
+
+    const passedChecks = Object.values(checks).filter(Boolean).length;
+    const strength = (passedChecks / 5) * 100;
+
+    return { ...checks, strength };
+  };
+
   // Validar email institucional
   const validateEmailDomain = (email) => {
     return email.endsWith('@uci.cu') || email.endsWith('usuario@uci.cu');
+  };
+
+  // Manejar cambio en select múltiple de asignaturas
+  const handleAsignaturasToggle = (asignatura) => {
+    const currentAsignaturas = [...formData.asignaturas];
+    const index = currentAsignaturas.indexOf(asignatura);
+    
+    if (index === -1) {
+      currentAsignaturas.push(asignatura);
+    } else {
+      currentAsignaturas.splice(index, 1);
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      asignaturas: currentAsignaturas
+    }));
+    
+    validateAsignaturas(currentAsignaturas);
+  };
+
+  // Seleccionar/deseleccionar todas las asignaturas de una categoría
+  const toggleCategory = (categoryItems) => {
+    const currentAsignaturas = [...formData.asignaturas];
+    const allSelected = categoryItems.every(item => currentAsignaturas.includes(item));
+    
+    let newAsignaturas;
+    if (allSelected) {
+      newAsignaturas = currentAsignaturas.filter(item => !categoryItems.includes(item));
+    } else {
+      newAsignaturas = [...new Set([...currentAsignaturas, ...categoryItems])];
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      asignaturas: newAsignaturas
+    }));
+    
+    validateAsignaturas(newAsignaturas);
+  };
+
+  // Validar asignaturas en tiempo real
+  const validateAsignaturas = (asignaturas) => {
+    if (asignaturas.length === 0) {
+      setErrors(prev => ({
+        ...prev,
+        asignaturas: 'Debe seleccionar al menos una asignatura'
+      }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.asignaturas;
+        return newErrors;
+      });
+    }
   };
 
   const handleChange = (e) => {
@@ -66,7 +196,6 @@ const checkPasswordStrength = (password) => {
         [name]: 'El nombre no debe contener números ni caracteres especiales'
       }));
     } else if (name === 'name') {
-      // Limpiar error si se corrige
       setErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[name];
@@ -78,7 +207,7 @@ const checkPasswordStrength = (password) => {
     if (name === 'email' && value !== '' && !validateEmailDomain(value)) {
       setErrors(prev => ({
         ...prev,
-        [name]: 'Debe usar un correo institucional UCI (@uci.cu'
+        [name]: 'Debe usar un correo institucional UCI (@uci.cu)'
       }));
     } else if (name === 'email') {
       setErrors(prev => {
@@ -121,10 +250,13 @@ const checkPasswordStrength = (password) => {
       });
     }
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    // Para otros campos
+    if (name !== 'asignaturas') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -141,7 +273,7 @@ const checkPasswordStrength = (password) => {
 
     // Validar email institucional
     if (!validateEmailDomain(formData.email)) {
-      newErrors.email = 'Debe usar un correo institucional UCI (@uci.edu.cu o @estudiantes.uci.edu.cu)';
+      newErrors.email = 'Debe usar un correo institucional UCI (@uci.cu)';
     }
 
     // Validar campos obligatorios
@@ -160,8 +292,10 @@ const checkPasswordStrength = (password) => {
     if (!formData.carrera) {
       newErrors.carrera = 'Debe seleccionar una carrera';
     }
-     if (!formData.asignatura) {
-      newErrors.asignatura = 'Debe seleccionar una asignatura';
+
+    // Validar asignaturas
+    if (formData.asignaturas.length === 0) {
+      newErrors.asignaturas = 'Debe seleccionar al menos una asignatura';
     }
 
     // Validar contraseña
@@ -196,9 +330,13 @@ const checkPasswordStrength = (password) => {
         cargo: formData.cargo,
         faculty: formData.faculty,
         carrera: formData.carrera,
-        asignatura: formData.asignatura
+        asignaturas: formData.asignaturas
       });
-      navigate('/dashboard');
+      formData.cargo === "Director" ? navigate('/director/dashboard') : navigate('/director/dashboard');
+      //formData.cargo === "Vicedecano" ? navigate('/dashboard-director') : navigate('/dashboard');
+      //formData.cargo === "Director" ? navigate('/dashboard-director') : navigate('/dashboard');
+      //formData.cargo === "Director" ? navigate('/dashboard-director') : navigate('/dashboard');
+
     } catch (err) {
       setErrors({ general: err.message || 'Error al registrarse' });
     } finally {
@@ -396,68 +534,133 @@ const checkPasswordStrength = (password) => {
               )}
             </div>
           
-           {/* Asignaturas */}
-            <div className="form-group">
-              <label htmlFor="asignatura" className="required">Asignatura</label>
-              <select
-                id="asignatura"
-                name="asignatura"
-                value={formData.asignatura}
-                onChange={handleChange}
-                required 
-                className={errors.asignatura ? 'input-error' : ''}
-              >
-                <option value="">Selecciona una asignatura</option>
-                <option value=" ICI1"> ICI1</option>
-                <option value=" ICI2"> ICI2</option>
-                <option value="PID1"> PID1</option>
-                <option value=" PID2">PID2</option>
-                <option value="PID3">PID3</option>
-                <option value="PID4">PID4</option>
-                <option value="PID5">PID5</option>
-                <option value="MIC">MIC</option>
-                <option value="IP1">IP1</option>
-                <option value="IP2">IP2</option>
-                <option value="ED1">ED1</option>
-                <option value="ED2">ED2</option>
-                <option value="Pweb">Pweb</option>
-                <option value="SBD1"> SBD1</option>
-                <option value=" SBD2">SBD2</option>
-                <option value="ISW1">ISW1</option>
-                <option value="ISW2">ISW2</option>
-                <option value="GPI">GPI</option>
-                <option value="Filosofía">Filosofía</option>
-                <option value="EP">EP</option>
-                <option value="TP">TP</option>
-                <option value="ECTS">ECTS</option>
-                <option value="Historia de Cuba">Historia de Cuba</option>
-                <option value="MD1">MD1</option>
-                <option value="MD2">MD2</option>
-                <option value="PE">PE</option>
-                <option value="IO">IO</option>
-                <option value="IA">IA</option>
-                <option value="AA">AA</option>
-                <option value="FAGO">FAGO</option>
-                <option value="GPN">GPN</option>
-                <option value="AC">AC</option>
-                <option value="SO">SO</option>
-                <option value="RSI1">ISW1</option>
-                <option value="RSI2">RSI2</option>
-                <option value="Álgebra">Álgebra</option> 
-                <option value="M1">M1</option>
-                <option value="M2">M2</option>
-                <option value="M3">M3</option>
-                <option value="Física">Física</option>
-                <option value="EF1">EF1</option>
-                <option value="EF2">EF2</option>
-                <option value="EF3">EF3</option>
-                <option value="EF4">EF4</option>
-                                 
-              </select>
-              {errors.asignatura && (
-                <div className="validation-error">
+           {/* NUEVO: Asignaturas con Multi-select POSICIONADO CORRECTAMENTE */}
+            <div className="form-group" ref={dropdownRef}>
+              <label htmlFor="asignaturas" className="required">Asignaturas</label>
+              <div className="multi-select-container">
+                <div 
+                  ref={triggerRef}
+                  className={`multi-select-trigger ${errors.asignaturas ? 'input-error' : ''} ${showAsignaturasDropdown ? 'active' : ''}`}
+                  onClick={handleDropdownToggle}
+                  aria-expanded={showAsignaturasDropdown}
+                  aria-describedby={errors.asignaturas ? 'asignaturas-error' : undefined}
+                  aria-invalid={!!errors.asignaturas}
+                >
+                  <div className="selected-items">
+                    {formData.asignaturas.length > 0 ? (
+                      <span className="selected-count-badge">
+                        {formData.asignaturas.length} asignatura(s) seleccionada(s)
+                      </span>
+                    ) : (
+                      <span className="placeholder">Selecciona asignaturas...</span>
+                    )}
+                  </div>
+                  <span className="dropdown-arrow">
+                    {showAsignaturasDropdown ? '▲' : '▼'}
+                  </span>
+                </div>
+                
+                {showAsignaturasDropdown && (
+                  <div className={`multi-select-dropdown ${dropdownDirection === 'up' ? 'dropdown-up' : 'dropdown-down'}`}>
+                    <div className="dropdown-header">
+                      <span className="dropdown-title">Selecciona las asignaturas</span>
+                      <button 
+                        type="button"
+                        className="clear-all-btn"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, asignaturas: [] }));
+                          validateAsignaturas([]);
+                        }}
+                      >
+                        Limpiar todo
+                      </button>
+                    </div>
+                    
+                    <div className="dropdown-search">
+                      <input
+                        type="text"
+                        placeholder="Buscar asignaturas..."
+                        className="search-input"
+                        id="search-asignaturas"
+                      />
+                    </div>
+                    
+                    <div className="dropdown-content">
+                      {asignaturasOptions.map((category, index) => (
+                        <div key={index} className="category-section">
+                          <div className="category-header">
+                            <span className="category-title">{category.category}</span>
+                            <button
+                              type="button"
+                              className="category-toggle"
+                              onClick={() => toggleCategory(category.items)}
+                            >
+                              {category.items.every(item => formData.asignaturas.includes(item)) 
+                                ? 'Deseleccionar todas' 
+                                : 'Seleccionar todas'}
+                            </button>
+                          </div>
+                          <div className="category-items">
+                            {category.items.map((asignatura) => (
+                              <label key={asignatura} className="checkbox-item">
+                                <input
+                                  type="checkbox"
+                                  checked={formData.asignaturas.includes(asignatura)}
+                                  onChange={() => handleAsignaturasToggle(asignatura)}
+                                  className="checkbox-input"
+                                />
+                                <span className="checkbox-custom"></span>
+                                <span className="checkbox-label">{asignatura}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="dropdown-footer">
+                      <span className="selected-total">
+                        Seleccionadas: <strong>{formData.asignaturas.length}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        className="done-btn"
+                        onClick={() => setShowAsignaturasDropdown(false)}
+                      >
+                        Listo
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {formData.asignaturas.length > 0 && (
+                <div className="selected-pills">
+                  {formData.asignaturas.slice(0, 3).map((asignatura) => (
+                    <span key={asignatura} className="selected-pill">
+                      {asignatura}
+                      <button
+                        type="button"
+                        className="pill-remove"
+                        onClick={() => handleAsignaturasToggle(asignatura)}
+                        aria-label={`Remover ${asignatura}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  {formData.asignaturas.length > 3 && (
+                    <span className="pill-more">
+                      +{formData.asignaturas.length - 3} más
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {errors.asignaturas && (
+                <div id="asignaturas-error" className="validation-error" role="alert">
                   <span className="error-icon">⚠</span>
-                  {errors.asignatura}
+                  {errors.asignaturas}
                 </div>
               )}
             </div>

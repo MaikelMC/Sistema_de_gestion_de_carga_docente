@@ -5,9 +5,10 @@ import './DashboardDirector.css';
 
 export const DirectorProfesores = () => {
   const sidebarItems = [
-    { id: 'dashboard', icon: '📊', label: 'Dashboard', href: '/dashboard' },
-    { id: 'professors', icon: '👨‍🏫', label: 'Ver Profesores', href: '/director/profesores' },
-    { id: 'reports', icon: '📋', label: 'Reportes', href: '/director/reportes' },
+    { id: 'dashboard', icon: '📊', label: 'Dashboard', href: '/director/dashboard' },
+    { id: 'professors', icon: '👨‍🏫', label: 'Profesores', href: '/director/profesores' },
+    { id: 'assignments', icon: '📋', label: 'Asignaciones', href: '/director/asignaciones' },
+    { id: 'reports', icon: '📄', label: 'Reportes', href: '/director/reportes' },
     { id: 'messages', icon: '💬', label: 'Mensajes', href: '/director/mensajes' },
   ];
 

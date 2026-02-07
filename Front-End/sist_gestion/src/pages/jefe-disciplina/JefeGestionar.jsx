@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
 import { MainLayout } from '../../components/common/Layout';
-import { Table, Alert } from '../../components/common/Table';
+import { Table } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import './Dashboard.css';
 
 export const JefeGestionar = () => {
   const { professors, deleteProfessor } = useData();
-  const [alert, setAlert] = useState(null);
+  const { showSuccess, showInfo, confirm } = useNotification();
 
   const handleDelete = (id) => {
-    if (confirm('¿Eliminar este profesor?')) {
-      deleteProfessor(id);
-      setAlert({ type: 'success', message: 'Profesor eliminado' });
-    }
+    confirm(
+      {
+        title: 'Eliminar profesor',
+        message: '¿Estás seguro de que deseas eliminar este profesor?',
+        type: 'danger',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      },
+      (confirmed) => {
+        if (confirmed) {
+          deleteProfessor(id);
+          showSuccess('Profesor eliminado');
+        }
+      }
+    );
   };
 
   const handleEdit = (prof) => {
-    setAlert({ type: 'info', message: 'Editar profesor — usa el botón + Agregar Profesor en el dashboard para crear/editar.' });
+    showInfo('Editar profesor — usa el botón + Agregar Profesor en el dashboard para crear/editar.');
   };
 
   const columns = [
@@ -42,10 +54,6 @@ export const JefeGestionar = () => {
           <p className="page-subtitle">Editar o eliminar profesores de la unidad</p>
         </div>
       </div>
-
-      {alert && (
-        <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
-      )}
 
       <div className="section">
         <Table columns={columns} data={professors} onEdit={handleEdit} onDelete={handleDelete} />

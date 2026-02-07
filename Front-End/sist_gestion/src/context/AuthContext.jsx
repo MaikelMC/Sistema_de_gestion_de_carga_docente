@@ -76,8 +76,10 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       const message =
         err.response?.data?.detail ||
+        err.response?.data?.non_field_errors?.[0] ||
         err.response?.data?.email?.[0] ||
         err.response?.data?.password?.[0] ||
+        err.response?.data?.password_confirm?.[0] ||
         'Error al registrar el usuario';
       setError(message);
       throw new Error(message);

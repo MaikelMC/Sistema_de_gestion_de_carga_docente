@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { MainLayout } from '../../components/common/Layout';
-import { Table, Alert, Modal } from '../../components/common/Table';
+import { Table, Modal } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import './Dashboard.css';
 
 export const VicedecanoGestion = () => {
   const { professors, disciplines, deleteProfessor, updateProfessor, addProfessor, addComment } = useData();
-  const [alert, setAlert] = useState(null);
+  const { showSuccess, showError, confirm } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDisciplina, setFilterDisciplina] = useState('');
   const [filterFacultad, setFilterFacultad] = useState('');
@@ -58,7 +59,7 @@ export const VicedecanoGestion = () => {
 
   const handleSaveAdd = () => {
     if (!addFormData.name || !addFormData.email || !messageText) {
-      setAlert({ type: 'error', message: 'Completa todos los campos incluyendo el mensaje' });
+      showError('Completa todos los campos incluyendo el mensaje');
       return;
     }
 
@@ -69,15 +70,26 @@ export const VicedecanoGestion = () => {
       type: 'add'
     });
 
-    setAlert({ type: 'success', message: 'Profesor agregado exitosamente' });
+    showSuccess('Profesor agregado exitosamente');
     setIsAddModalOpen(false);
   };
 
   const handleDelete = (id) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este profesor?')) {
-      deleteProfessor(id);
-      setAlert({ type: 'success', message: 'Profesor eliminado exitosamente' });
-    }
+    confirm(
+      {
+        title: 'Eliminar profesor',
+        message: '¿Estás seguro de que deseas eliminar este profesor?',
+        type: 'danger',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      },
+      (confirmed) => {
+        if (confirmed) {
+          deleteProfessor(id);
+          showSuccess('Profesor eliminado exitosamente');
+        }
+      }
+    );
   };
 
   const handleEditClick = (prof) => {
@@ -89,7 +101,7 @@ export const VicedecanoGestion = () => {
 
   const handleSaveEdit = () => {
     if (!editFormData.name || !editFormData.email || !messageText) {
-      setAlert({ type: 'error', message: 'Completa todos los campos incluyendo el mensaje' });
+      showError('Completa todos los campos incluyendo el mensaje');
       return;
     }
 
@@ -100,7 +112,7 @@ export const VicedecanoGestion = () => {
       type: 'edit'
     });
 
-    setAlert({ type: 'success', message: 'Profesor actualizado exitosamente' });
+    showSuccess('Profesor actualizado exitosamente');
     setIsEditModalOpen(false);
     setEditingProf(null);
   };
@@ -139,10 +151,6 @@ export const VicedecanoGestion = () => {
           </button>
         </div>
       </div>
-
-      {alert && (
-        <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
-      )}
 
       {/* Filtros */}
       <div className="filters-section">

@@ -8,16 +8,44 @@ export const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Validar email institucional
+  const validateEmailDomain = (emailValue) => {
+    return emailValue.endsWith('@uci.cu');
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    // Validación en tiempo real
+    if (value !== '' && !validateEmailDomain(value)) {
+      setEmailError('Debe usar un correo institucional UCI (@uci.cu)');
+    } else {
+      setEmailError('');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setEmailError('');
+
+    // Validar email institucional
+    if (!validateEmailDomain(email)) {
+      setEmailError('Debe usar un correo institucional UCI (@uci.cu)');
+      setLoading(false);
+      return;
+    }
 
     try {
-      await login(email, password);
+      const userData = await login(email, password);
+      
+      // Navegar al dashboard - el DashboardRouter se encarga del routing según rol
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión');
@@ -55,10 +83,20 @@ export const LoginPage = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 placeholder="usuario@uci.cu"
                 required
+                className={emailError ? 'input-error' : ''}
               />
+              {emailError && (
+                <div className="validation-error">
+                  <span className="error-icon">⚠</span>
+                  {emailError}
+                </div>
+              )}
+              <div className="input-hint">
+                Debe ser un correo institucional UCI
+              </div>
             </div>
 
             <div className="form-group">
@@ -81,7 +119,7 @@ export const LoginPage = () => {
             <button 
               type="submit" 
               className={`auth-button ${loading ? 'loading' : ''}`} 
-              disabled={loading}
+              disabled={loading || !!emailError}
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>

@@ -28,7 +28,6 @@ export const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showAsignaturasDropdown, setShowAsignaturasDropdown] = useState(false);
-  const [dropdownDirection, setDropdownDirection] = useState('down'); // 'up' o 'down'
   const dropdownRef = useRef(null);
   const triggerRef = useRef(null);
   const { register } = useAuth();
@@ -47,26 +46,8 @@ export const RegisterPage = () => {
     { category: 'Física', items: ['Física', 'EF1', 'EF2', 'EF3', 'EF4'] }
   ];
 
-  // Calcular la mejor dirección para el dropdown
-  const calculateDropdownDirection = () => {
-    if (!triggerRef.current) return 'down';
-    
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - triggerRect.bottom;
-    const spaceAbove = triggerRect.top;
-    const dropdownHeight = 400; // Altura estimada del dropdown
-    
-    // Si hay más espacio abajo, abrir hacia abajo, sino hacia arriba
-    return spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove ? 'down' : 'up';
-  };
-
   // Manejar apertura del dropdown
   const handleDropdownToggle = () => {
-    if (!showAsignaturasDropdown) {
-      // Antes de abrir, calcular la mejor dirección
-      const direction = calculateDropdownDirection();
-      setDropdownDirection(direction);
-    }
     setShowAsignaturasDropdown(!showAsignaturasDropdown);
   };
 
@@ -93,14 +74,12 @@ export const RegisterPage = () => {
     };
   }, []);
 
-  // Scroll to dropdown cuando se abre
+  // Scroll suave al dropdown cuando se abre
   useEffect(() => {
     if (showAsignaturasDropdown && triggerRef.current) {
-      // Hacer scroll suave hasta el dropdown si es necesario
-      triggerRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
-      });
+      setTimeout(() => {
+        triggerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
     }
   }, [showAsignaturasDropdown]);
 
@@ -128,7 +107,7 @@ export const RegisterPage = () => {
 
   // Validar email institucional
   const validateEmailDomain = (email) => {
-    return email.endsWith('@uci.cu') || email.endsWith('usuario@uci.cu');
+    return email.endsWith('@uci.cu');
   };
 
   // Manejar cambio en select múltiple de asignaturas
@@ -326,16 +305,22 @@ export const RegisterPage = () => {
         name: formData.name.trim(),
         email: formData.email.toLowerCase().trim(),
         password: formData.password,
+        password_confirm: formData.confirmPassword,
         disciplina: formData.disciplina,
         cargo: formData.cargo,
         faculty: formData.faculty,
         carrera: formData.carrera,
-        asignaturas: formData.asignaturas
+        asignatura: formData.asignaturas.join(', ')
       });
-      formData.cargo === "Director" ? navigate('/director/dashboard') : navigate('/director/dashboard');
-      //formData.cargo === "Vicedecano" ? navigate('/dashboard-director') : navigate('/dashboard');
-      //formData.cargo === "Director" ? navigate('/dashboard-director') : navigate('/dashboard');
-      //formData.cargo === "Director" ? navigate('/dashboard-director') : navigate('/dashboard');
+
+      // Navegar según el cargo seleccionado
+      const roleRoutes = {
+        'Director': '/director/dashboard',
+        'Vicedecano': '/vicedecano/dashboard',
+        'jefe de disciplina': '/jefe-disciplina/dashboard',
+        'jefe de departamento': '/admin/dashboard',
+      };
+      navigate(roleRoutes[formData.cargo] || '/dashboard');
 
     } catch (err) {
       setErrors({ general: err.message || 'Error al registrarse' });
@@ -535,9 +520,9 @@ export const RegisterPage = () => {
             </div>
           
            {/* NUEVO: Asignaturas con Multi-select POSICIONADO CORRECTAMENTE */}
-            <div className="form-group" ref={dropdownRef}>
+            <div className="form-group form-group-dropdown">
               <label htmlFor="asignaturas" className="required">Asignaturas</label>
-              <div className="multi-select-container">
+              <div className="multi-select-container" ref={dropdownRef}>
                 <div 
                   ref={triggerRef}
                   className={`multi-select-trigger ${errors.asignaturas ? 'input-error' : ''} ${showAsignaturasDropdown ? 'active' : ''}`}
@@ -561,7 +546,7 @@ export const RegisterPage = () => {
                 </div>
                 
                 {showAsignaturasDropdown && (
-                  <div className={`multi-select-dropdown ${dropdownDirection === 'up' ? 'dropdown-up' : 'dropdown-down'}`}>
+                  <div className="multi-select-dropdown">
                     <div className="dropdown-header">
                       <span className="dropdown-title">Selecciona las asignaturas</span>
                       <button 

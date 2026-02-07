@@ -6,6 +6,15 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 User = get_user_model()
 
 
+def validate_uci_email(email):
+    """Validar que el email sea del dominio @uci.cu"""
+    if not email.endswith('@uci.cu'):
+        raise serializers.ValidationError(
+            'El email debe ser del dominio institucional @uci.cu'
+        )
+    return email
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Serializer personalizado para login JWT que devuelve datos del usuario.
@@ -24,6 +33,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         email = attrs.get('email', '')
         password = attrs.get('password', '')
+        
+        # Validar dominio de email
+        validate_uci_email(email)
         
         # Buscar el usuario por email
         try:
@@ -164,15 +176,9 @@ class AdminChangePasswordSerializer(serializers.Serializer):
         return attrs
 
 
-class LoginSerializer(serializers.Serializer):
-    """Serializer para login."""
-    username = serializers.CharField()
-    password = serializers.CharField()
-
-
 class RegisterSerializer(serializers.ModelSerializer):
     """Serializer para registro público de usuarios."""
-    password = serializers.CharField(write_only=True, min_length=6)
+    password = serializers.CharField(write_only=True, min_length=8, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
     name = serializers.CharField(write_only=True)
     cargo = serializers.CharField(write_only=True, required=False)
@@ -189,6 +195,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
+        # Validar dominio de email
+        email = attrs.get('email', '')
+        validate_uci_email(email)
+        
         if attrs['password'] != attrs['password_confirm']:
             raise serializers.ValidationError({
                 'password_confirm': 'Las contraseñas no coinciden.'

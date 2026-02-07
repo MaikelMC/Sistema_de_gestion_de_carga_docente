@@ -1,77 +1,75 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '../../components/common/Layout';
 import { useData } from '../../context/DataContext';
 import './DashboardDirector.css';
 
 export const DirectorDashboard = () => {
-  const { professors, disciplines, faculties, comments, assignments } = useData();
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedFaculty, setSelectedFaculty] = useState('all');
-  const [selectedDiscipline, setSelectedDiscipline] = useState('all');
-  const [selectedSubject, setSelectedSubject] = useState('all');
-  const [messageFilter, setMessageFilter] = useState('all');
+  const navigate = useNavigate();
+  const { professors = [], disciplines = [], comments = [], messages = [] } = useData();
 
-  // Sidebar items con estado activo
+  // Sidebar items con rutas reales
   const sidebarItems = [
-    { id: 'dashboard', icon: '📊', label: 'Dashboard', href: '#dashboard' },
-    { id: 'professors', icon: '👨‍🏫', label: 'Profesores', href: '#professors' },
-    { id: 'assignments', icon: '📋', label: 'Asignaciones', href: '#assignments' },
-    { id: 'reports', icon: '📄', label: 'Reportes', href: '#reports' },
-    { id: 'messages', icon: '💬', label: 'Mensajes', href: '#messages' },
+    { id: 'dashboard', icon: '📊', label: 'Dashboard', href: '/director/dashboard' },
+    { id: 'professors', icon: '👨‍🏫', label: 'Profesores', href: '/director/profesores' },
+    { id: 'assignments', icon: '📋', label: 'Asignaciones', href: '/director/asignaciones' },
+    { id: 'reports', icon: '📄', label: 'Reportes', href: '/director/reportes' },
+    { id: 'messages', icon: '💬', label: 'Mensajes', href: '/director/mensajes' },
   ];
 
   // Estadísticas generales
   const stats = useMemo(() => ({
-    totalProfessors: professors.length,
-    totalDisciplines: disciplines.length,
-    totalFaculties: [...new Set(professors.map(p => p.faculty))].length,
-    recentChanges: comments.filter(c => {
+    totalProfessors: (professors || []).length,
+    totalDisciplines: (disciplines || []).length,
+    totalFaculties: [...new Set((professors || []).map(p => p.faculty))].length,
+    recentChanges: (comments || []).filter(c => {
       const daysAgo = (new Date() - new Date(c.timestamp)) / (1000 * 60 * 60 * 24);
       return daysAgo <= 7;
     }).length,
-    totalAssignments: assignments.length,
-    pendingApprovals: assignments.filter(a => a.status === 'pending').length,
-    availableProfessors: professors.filter(p => p.available).length,
-    averageLoad: professors.reduce((acc, p) => acc + (p.load || 0), 0) / professors.length || 0,
-  }), [professors, disciplines, comments, assignments]);
-
-  // Filtrar profesores
-  const filteredProfessors = useMemo(() => {
-    let filtered = [...professors];
-    if (selectedFaculty !== 'all') {
-      filtered = filtered.filter(p => p.faculty === selectedFaculty);
-    }
-    if (selectedDiscipline !== 'all') {
-      filtered = filtered.filter(p => p.discipline === selectedDiscipline);
-    }
-    return filtered;
-  }, [professors, selectedFaculty, selectedDiscipline]);
-
-  // Obtener facultades únicas
-  const uniqueFaculties = useMemo(() => {
-    const facultiesSet = new Set(professors.map(p => p.faculty));
-    return ['all', ...Array.from(facultiesSet)];
-  }, [professors]);
-
-  // Obtener disciplinas únicas
-  const uniqueDisciplines = useMemo(() => {
-    const disciplinesSet = new Set(professors.map(p => p.discipline));
-    return ['all', ...Array.from(disciplinesSet)];
-  }, [professors]);
+    totalAssignments: 0,
+    pendingApprovals: 0,
+    availableProfessors: (professors || []).filter(p => p.available).length,
+    averageLoad: (professors || []).length > 0
+      ? (professors || []).reduce((acc, p) => acc + (p.load || 0), 0) / (professors || []).length
+      : 0,
+  }), [professors, disciplines, comments]);
 
   // Agrupar profesores por facultad
   const professorsByFaculty = useMemo(() => {
-    return professors.reduce((acc, professor) => {
-      if (!acc[professor.faculty]) {
-        acc[professor.faculty] = [];
+    const grouped = {};
+    professors.forEach(prof => {
+      const faculty = prof.faculty || 'Sin facultad';
+      if (!grouped[faculty]) {
+        grouped[faculty] = [];
       }
-      acc[professor.faculty].push(professor);
-      return acc;
-    }, {});
+      grouped[faculty].push(prof);
+    });
+    return grouped;
+  }, [professors]);
+
+  // Agrupar profesores por disciplina para visualización
+  const professorsByDiscipline = useMemo(() => {
+    const grouped = {};
+    professors.forEach(prof => {
+      const discipline = prof.department || 'Sin disciplina';
+      if (!grouped[discipline]) {
+        grouped[discipline] = [];
+      }
+      grouped[discipline].push(prof);
+    });
+    return Object.entries(grouped)
+      .map(([name, profs]) => ({
+        name,
+        count: profs.length,
+        percentage: ((profs.length / professors.length) * 100).toFixed(1)
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
   }, [professors]);
 
   // Agrupar asignaciones por disciplina
   const assignmentsByDiscipline = useMemo(() => {
+    const assignments = [];
     return assignments.reduce((acc, assignment) => {
       if (!acc[assignment.discipline]) {
         acc[assignment.discipline] = [];
@@ -79,19 +77,7 @@ export const DirectorDashboard = () => {
       acc[assignment.discipline].push(assignment);
       return acc;
     }, {});
-  }, [assignments]);
-
-  // Filtrar mensajes
-  const filteredMessages = useMemo(() => {
-    if (messageFilter === 'all') return comments;
-    if (messageFilter === 'recent') {
-      return comments.filter(c => {
-        const daysAgo = (new Date() - new Date(c.timestamp)) / (1000 * 60 * 60 * 24);
-        return daysAgo <= 7;
-      });
-    }
-    return comments.filter(c => c.type === messageFilter);
-  }, [comments, messageFilter]);
+  }, []);
 
   // Generar CSV
   const generateCSV = (data, filename) => {
@@ -126,17 +112,14 @@ export const DirectorDashboard = () => {
         generateCSV(professors, 'profesores_general');
         break;
       case 'assignments':
-        generateCSV(assignments, 'asignaciones_general');
+        generateCSV([], 'asignaciones_general');
         break;
       case 'professors_by_faculty':
         const facultyData = Object.entries(professorsByFaculty).flatMap(([faculty, profs]) => profs.map(p => ({ ...p, faculty_group: faculty })));
         generateCSV(facultyData, 'profesores_por_facultad');
         break;
       case 'assignments_by_discipline':
-        const disciplineData = Object.entries(assignmentsByDiscipline).flatMap(([discipline, assigns]) =>
-          assigns.map(a => ({ ...a, discipline_group: discipline }))
-        );
-        generateCSV(disciplineData, 'asignaciones_por_disciplina');
+        generateCSV([], 'asignaciones_por_disciplina');
         break;
       default:
         break;
@@ -199,476 +182,127 @@ export const DirectorDashboard = () => {
       </div>
 
       {/* Sección rápida de acciones */}
-      <div className="quick-actions">
-        <h2 className="section-title">Acciones Rápidas</h2>
-        <div className="actions-grid">
+      <div className="quick-actions-modern">
+        <h2 className="section-title-large">Acciones Rápidas</h2>
+        <div className="actions-grid-modern">
           <button 
-            className="action-btn primary"
-            onClick={() => setActiveTab('professors')}
+            className="action-card-modern primary"
+            onClick={() => navigate('/director/profesores')}
           >
-            <span className="action-icon">👀</span>
-            <span className="action-text">Ver Profesores</span>
+            <div className="action-icon-container">
+              <span className="action-icon-large">👨‍🏫</span>
+            </div>
+            <div className="action-content">
+              <h3 className="action-title">Ver Profesores</h3>
+              <p className="action-description">Gestionar base de datos</p>
+            </div>
+            <div className="action-arrow">→</div>
           </button>
           <button 
-            className="action-btn secondary"
+            className="action-card-modern secondary"
+            onClick={() => navigate('/director/asignaciones')}
+          >
+            <div className="action-icon-container">
+              <span className="action-icon-large">📋</span>
+            </div>
+            <div className="action-content">
+              <h3 className="action-title">Asignaciones</h3>
+              <p className="action-description">Cargas docentes</p>
+            </div>
+            <div className="action-arrow">→</div>
+          </button>
+          <button 
+            className="action-card-modern success"
             onClick={() => handleDownloadReport('professors')}
           >
-            <span className="action-icon">📥</span>
-            <span className="action-text">Descargar CSV</span>
+            <div className="action-icon-container">
+              <span className="action-icon-large">📥</span>
+            </div>
+            <div className="action-content">
+              <h3 className="action-title">Descargar</h3>
+              <p className="action-description">Exportar datos CSV</p>
+            </div>
+            <div className="action-arrow">→</div>
           </button>
           <button 
-            className="action-btn accent"
-            onClick={() => setActiveTab('messages')}
+            className="action-card-modern info"
+            onClick={() => navigate('/director/reportes')}
           >
-            <span className="action-icon">💬</span>
-            <span className="action-text">Ver Mensajes</span>
-          </button>
-          <button 
-            className="action-btn warning"
-            onClick={() => setActiveTab('reports')}
-          >
-            <span className="action-icon">📊</span>
-            <span className="action-text">Generar Reporte</span>
+            <div className="action-icon-container">
+              <span className="action-icon-large">📊</span>
+            </div>
+            <div className="action-content">
+              <h3 className="action-title">Reportes</h3>
+              <p className="action-description">Análisis detallado</p>
+            </div>
+            <div className="action-arrow">→</div>
           </button>
         </div>
       </div>
 
-      {/* Vista previa de profesores */}
-      <div className="preview-section">
-        <div className="section-header">
-          <h2 className="section-title">Profesores por Facultad</h2>
-          <select 
-            className="filter-select"
-            value={selectedFaculty}
-            onChange={(e) => setSelectedFaculty(e.target.value)}
-          >
-            {uniqueFaculties.map(faculty => (
-              <option key={faculty} value={faculty}>
-                {faculty === 'all' ? 'Todas las facultades' : faculty}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="faculty-grid">
-          {Object.entries(professorsByFaculty)
-            .filter(([faculty]) => selectedFaculty === 'all' || faculty === selectedFaculty)
-            .slice(0, 4)
-            .map(([faculty, professors]) => (
-              <div key={faculty} className="faculty-card">
-                <h3 className="faculty-name">{faculty}</h3>
-                <div className="faculty-stats">
-                  <div className="faculty-stat">
-                    <span className="stat-value">{professors.length}</span>
-                    <span className="stat-label">Profesores</span>
+      {/* Distribución de Profesores */}
+      <div className="data-visualization-section">
+        <div className="viz-container">
+          <div className="chart-card">
+            <h2 className="section-title-large">Distribución por Disciplina</h2>
+            <p className="chart-subtitle">Top 5 disciplinas con más profesores</p>
+            <div className="bar-chart">
+              {professorsByDiscipline.map((item, index) => (
+                <div key={item.name} className="bar-item">
+                  <div className="bar-label-container">
+                    <span className="bar-rank">#{index + 1}</span>
+                    <span className="bar-label">{item.name}</span>
+                    <span className="bar-count">{item.count} prof.</span>
                   </div>
-                  <div className="faculty-stat">
-                    <span className="stat-value">
-                      {[...new Set(professors.map(p => p.discipline))].length}
-                    </span>
-                    <span className="stat-label">Disciplinas</span>
-                  </div>
-                </div>
-                <button 
-                  className="view-btn"
-                  onClick={() => {
-                    setSelectedFaculty(faculty);
-                    setActiveTab('professors');
-                  }}
-                >
-                  Ver Detalles →
-                </button>
-              </div>
-            ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  // Renderizar Profesores
-  const renderProfessors = () => (
-    <div className="director-section">
-      <div className="section-header">
-        <h1 className="page-title">Gestión de Profesores</h1>
-        <div className="header-actions">
-          <select 
-            className="filter-select"
-            value={selectedFaculty}
-            onChange={(e) => setSelectedFaculty(e.target.value)}
-          >
-            <option value="all">Todas las facultades</option>
-            {uniqueFaculties.filter(f => f !== 'all').map(faculty => (
-              <option key={faculty} value={faculty}>{faculty}</option>
-            ))}
-          </select>
-          
-          <select 
-            className="filter-select"
-            value={selectedDiscipline}
-            onChange={(e) => setSelectedDiscipline(e.target.value)}
-          >
-            <option value="all">Todas las disciplinas</option>
-            {uniqueDisciplines.filter(d => d !== 'all').map(discipline => (
-              <option key={discipline} value={discipline}>{discipline}</option>
-            ))}
-          </select>
-
-          <button 
-            className="download-btn"
-            onClick={() => handleDownloadReport('professors_by_faculty')}
-          >
-            📥 Descargar CSV
-          </button>
-        </div>
-      </div>
-
-      <div className="professors-table-container">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Facultad</th>
-              <th>Disciplina</th>
-              <th>Asignaturas</th>
-              <th>Carga (h)</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProfessors.map(professor => (
-              <tr key={professor.id}>
-                <td className="professor-name">
-                  <div className="avatar">
-                    {professor.name.charAt(0)}
-                  </div>
-                  {professor.name}
-                </td>
-                <td>{professor.email}</td>
-                <td>
-                  <span className="faculty-badge">{professor.faculty}</span>
-                </td>
-                <td>
-                  <span className="discipline-badge">{professor.discipline}</span>
-                </td>
-                <td>
-                  <div className="subjects-list">
-                    {professor.subjects?.slice(0, 2).map(subject => (
-                      <span key={subject} className="subject-tag">{subject}</span>
-                    ))}
-                    {professor.subjects?.length > 2 && (
-                      <span className="more-tag">+{professor.subjects.length - 2}</span>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  <div className="load-indicator">
+                  <div className="bar-track">
                     <div 
-                      className="load-bar"
-                      style={{ width: `${Math.min((professor.load || 0) * 10, 100)}%` }}
-                    ></div>
-                    <span>{professor.load || 0}h</span>
+                      className="bar-fill"
+                      style={{ width: `${item.percentage}%` }}
+                    >
+                      <span className="bar-percentage">{item.percentage}%</span>
+                    </div>
                   </div>
-                </td>
-                <td>
-                  <span className={`status-badge ${professor.available ? 'available' : 'unavailable'}`}>
-                    {professor.available ? 'Disponible' : 'No disponible'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="summary-cards">
-        <div className="summary-card">
-          <h3>Resumen por Facultad</h3>
-          <div className="faculty-summary">
-            {Object.entries(professorsByFaculty).map(([faculty, professors]) => (
-              <div key={faculty} className="faculty-summary-item">
-                <span className="faculty-name">{faculty}</span>
-                <span className="faculty-count">{professors.length}</span>
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        
-        <div className="summary-card">
-          <h3>Distribución por Disciplina</h3>
-          <div className="discipline-distribution">
-            {Object.entries(
-              professors.reduce((acc, p) => {
-                acc[p.discipline] = (acc[p.discipline] || 0) + 1;
-                return acc;
-              }, {})
-            ).map(([discipline, count]) => (
-              <div key={discipline} className="discipline-item">
-                <div className="discipline-info">
-                  <span className="discipline-name">{discipline}</span>
-                  <span className="discipline-percentage">
-                    {((count / professors.length) * 100).toFixed(1)}%
-                  </span>
+
+          <div className="activity-card">
+            <h2 className="section-title-large">Actividad Reciente</h2>
+            <p className="chart-subtitle">Últimos 7 días</p>
+            <div className="activity-list">
+              {comments.slice(0, 5).map((comment, index) => {
+                const timeAgo = Math.floor((new Date() - new Date(comment.timestamp)) / (1000 * 60 * 60));
+                return (
+                  <div key={index} className="activity-item">
+                    <div className="activity-icon">
+                      {comment.type === 'add' ? '➕' : '✏️'}
+                    </div>
+                    <div className="activity-content">
+                      <p className="activity-message">{comment.message}</p>
+                      <span className="activity-time">
+                        {timeAgo < 24 ? `${timeAgo}h` : `${Math.floor(timeAgo / 24)}d`} atrás
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              {comments.length === 0 && (
+                <div className="empty-activity">
+                  <span className="empty-icon">📭</span>
+                  <p>No hay actividad reciente</p>
                 </div>
-                <div className="discipline-bar">
-                  <div 
-                    className="bar-fill"
-                    style={{ width: `${(count / professors.length) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
-
-  // Renderizar Reportes
-  const renderReports = () => (
-    <div className="director-section">
-      <div className="section-header">
-        <h1 className="page-title">Reportes y Exportación</h1>
-        <p className="page-subtitle">Genera y descarga reportes en formato CSV</p>
-      </div>
-
-      <div className="reports-grid">
-        <div className="report-card">
-          <div className="report-icon">👨‍🏫</div>
-          <h3>Reporte General de Profesores</h3>
-          <p>Listado completo de todos los profesores con sus datos</p>
-          <div className="report-stats">
-            <span>{stats.totalProfessors} registros</span>
-            <span>{stats.totalFaculties} facultades</span>
-          </div>
-          <button 
-            className="download-report-btn"
-            onClick={() => handleDownloadReport('professors')}
-          >
-            Descargar CSV
-          </button>
-        </div>
-
-        <div className="report-card">
-          <div className="report-icon">🏛️</div>
-          <h3>Profesores por Facultad</h3>
-          <p>Agrupado por facultad con detalles específicos</p>
-          <div className="report-stats">
-            <span>{Object.keys(professorsByFaculty).length} grupos</span>
-            <span>{stats.totalProfessors} profesores</span>
-          </div>
-          <button 
-            className="download-report-btn"
-            onClick={() => handleDownloadReport('professors_by_faculty')}
-          >
-            Descargar CSV
-          </button>
-        </div>
-
-        <div className="report-card">
-          <div className="report-icon">📚</div>
-          <h3>Asignaciones por Disciplina</h3>
-          <p>Distribución de asignaciones organizada por disciplina</p>
-          <div className="report-stats">
-            <span>{Object.keys(assignmentsByDiscipline).length} disciplinas</span>
-            <span>{stats.totalAssignments} asignaciones</span>
-          </div>
-          <button 
-            className="download-report-btn"
-            onClick={() => handleDownloadReport('assignments_by_discipline')}
-          >
-            Descargar CSV
-          </button>
-        </div>
-
-        <div className="report-card">
-          <div className="report-icon">📋</div>
-          <h3>Reporte de Asignaciones</h3>
-          <p>Todas las asignaciones con estado y detalles</p>
-          <div className="report-stats">
-            <span>{stats.totalAssignments} asignaciones</span>
-            <span>{stats.pendingApprovals} pendientes</span>
-          </div>
-          <button 
-            className="download-report-btn"
-            onClick={() => handleDownloadReport('assignments')}
-          >
-            Descargar CSV
-          </button>
-        </div>
-      </div>
-
-      <div className="custom-report">
-        <h2 className="section-title">Reporte Personalizado</h2>
-        <div className="custom-filters">
-          <select className="filter-select">
-            <option value="">Seleccionar facultad...</option>
-            {uniqueFaculties.filter(f => f !== 'all').map(faculty => (
-              <option key={faculty} value={faculty}>{faculty}</option>
-            ))}
-          </select>
-          
-          <select className="filter-select">
-            <option value="">Seleccionar disciplina...</option>
-            {uniqueDisciplines.filter(d => d !== 'all').map(discipline => (
-              <option key={discipline} value={discipline}>{discipline}</option>
-            ))}
-          </select>
-          
-          <select className="filter-select">
-            <option value="">Tipo de reporte...</option>
-            <option value="detailed">Detallado</option>
-            <option value="summary">Resumido</option>
-            <option value="comparative">Comparativo</option>
-          </select>
-          
-          <button className="generate-btn">
-            Generar Reporte
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Renderizar Mensajes
-  const renderMessages = () => (
-    <div className="director-section">
-      <div className="section-header">
-        <h1 className="page-title">Mensajes de los Jefes de Disciplina</h1>
-        <div className="header-actions">
-          <select 
-            className="filter-select"
-            value={messageFilter}
-            onChange={(e) => setMessageFilter(e.target.value)}
-          >
-            <option value="all">Todos los mensajes</option>
-            <option value="recent">Últimos 7 días</option>
-            <option value="urgent">Urgentes</option>
-            <option value="info">Informativos</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="messages-container">
-        {filteredMessages.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">💬</div>
-            <h3>No hay mensajes</h3>
-            <p>No se encontraron mensajes con los filtros seleccionados</p>
-          </div>
-        ) : (
-          <div className="messages-list">
-            {filteredMessages.map(message => (
-              <div key={message.id} className={`message-card ${message.type}`}>
-                <div className="message-header">
-                  <div className="message-sender">
-                    <div className="sender-avatar">
-                      {message.sender?.charAt(0) || 'J'}
-                    </div>
-                    <div className="sender-info">
-                      <strong>{message.sender || 'Jefe de Disciplina'}</strong>
-                      <span className="sender-role">{message.discipline || 'Disciplina'}</span>
-                    </div>
-                  </div>
-                  <div className="message-meta">
-                    <span className="message-date">
-                      {new Date(message.timestamp).toLocaleDateString()}
-                    </span>
-                    <span className={`message-type ${message.type}`}>
-                      {message.type === 'urgent' ? '⚠️ Urgente' : '📝 Informativo'}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="message-content">
-                  <h3 className="message-title">{message.title}</h3>
-                  <p className="message-text">{message.content}</p>
-                  
-                  {message.attachments && message.attachments.length > 0 && (
-                    <div className="message-attachments">
-                      <span className="attachments-label">Adjuntos:</span>
-                      {message.attachments.map((att, index) => (
-                        <span key={index} className="attachment-tag">
-                          📎 {att.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="message-actions">
-                  <button className="message-action-btn">
-                    ✅ Marcar como leído
-                  </button>
-                  <button className="message-action-btn">
-                    📋 Crear tarea
-                  </button>
-                  <button className="message-action-btn">
-                    💬 Responder
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="messages-stats">
-        <div className="stat-item">
-          <div className="stat-value">{comments.length}</div>
-          <div className="stat-label">Total mensajes</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-value">
-            {comments.filter(m => m.type === 'urgent').length}
-          </div>
-          <div className="stat-label">Urgentes</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-value">
-            {comments.filter(m => {
-              const daysAgo = (new Date() - new Date(m.timestamp)) / (1000 * 60 * 60 * 24);
-              return daysAgo <= 7;
-            }).length}
-          </div>
-          <div className="stat-label">Última semana</div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-value">
-            {[...new Set(comments.map(m => m.sender))].length}
-          </div>
-          <div className="stat-label">Remitentes</div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Renderizar componente principal
-  const renderContent = () => {
-    switch(activeTab) {
-      case 'professors':
-        return renderProfessors();
-      case 'assignments':
-        // Aquí puedes implementar la vista de asignaciones si la necesitas
-        return renderProfessors(); // Temporalmente igual a profesores
-      case 'reports':
-        return renderReports();
-      case 'messages':
-        return renderMessages();
-      default:
-        return renderDashboard();
-    }
-  };
 
   return (
-    <MainLayout 
-      sidebarItems={sidebarItems.map(item => ({
-        ...item,
-        active: activeTab === item.id,
-        onClick: () => setActiveTab(item.id)
-      }))}
-    >
-      {renderContent()}
+    <MainLayout sidebarItems={sidebarItems}>
+      {renderDashboard()}
     </MainLayout>
   );
 };

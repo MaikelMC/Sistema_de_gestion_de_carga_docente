@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { MainLayout } from '../../components/common/Layout';
-import { Table, Alert } from '../../components/common/Table';
+import { Table } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import './Dashboard.css';
 
 export const JefeGestionProfesores = () => {
   const { professors, deleteProfessor, updateProfessor, addComment } = useData();
-  const [alert, setAlert] = useState(null);
+  const { showSuccess, showError, confirm } = useNotification();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDisciplina, setFilterDisciplina] = useState('');
   const [filterFacultad, setFilterFacultad] = useState('');
@@ -36,10 +37,21 @@ export const JefeGestionProfesores = () => {
   }, [professors, searchTerm, filterDisciplina, filterFacultad]);
 
   const handleDelete = (id) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este profesor?')) {
-      deleteProfessor(id);
-      setAlert({ type: 'success', message: 'Profesor eliminado exitosamente' });
-    }
+    confirm(
+      {
+        title: 'Eliminar profesor',
+        message: '¿Estás seguro de que deseas eliminar este profesor?',
+        type: 'danger',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      },
+      (confirmed) => {
+        if (confirmed) {
+          deleteProfessor(id);
+          showSuccess('Profesor eliminado exitosamente');
+        }
+      }
+    );
   };
 
   const handleEditClick = (prof) => {
@@ -50,7 +62,7 @@ export const JefeGestionProfesores = () => {
 
   const handleSaveEdit = () => {
     if (!editFormData.name || !editFormData.email) {
-      setAlert({ type: 'error', message: 'Nombre y email son requeridos' });
+      showError('Nombre y email son requeridos');
       return;
     }
 
@@ -61,7 +73,7 @@ export const JefeGestionProfesores = () => {
       type: 'edit'
     });
 
-    setAlert({ type: 'success', message: 'Profesor actualizado exitosamente' });
+    showSuccess('Profesor actualizado exitosamente');
     setIsEditModalOpen(false);
     setEditingProf(null);
   };
@@ -94,10 +106,6 @@ export const JefeGestionProfesores = () => {
           <p className="page-subtitle">Visualiza, busca, edita y elimina profesores de la unidad</p>
         </div>
       </div>
-
-      {alert && (
-        <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
-      )}
 
       {/* Filtros */}
       <div className="filters-section">

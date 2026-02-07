@@ -22,3 +22,126 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+Back-End/db.sqlite3
+db.sqlite3
+
+# -----------------------------
+# Python / Django
+# -----------------------------
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+eggs/
+parts/
+var/
+wheels/
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+htmlcov/
+
+# Translations
+*.mo
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+media/
+staticfiles
+staticfiles/
+
+# Sensitive env files
+.env
+.env.*
+
+# pyenv
+.python-version
+
+# virtualenv
+venv/
+ENV/
+env/
+.venv/
+env.bak/
+venv.bak/
+
+# Mypy
+.mypy_cache/
+
+# -----------------------------
+# Node / Frontend
+# -----------------------------
+# Node modules
+node_modules/
+
+# Local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Next/Vite/parcel/etc build outputs
+dist/
+build/
+.parcel-cache/
+.vite/
+
+# npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# -----------------------------
+# IDEs and editors
+# -----------------------------
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Misc
+# -----------------------------
+coverage/
+coverage.*
+*.tmp
+*.temp
+*.bak
+*.swp
+

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { ProtectedRoute } from './utils/ProtectedRoute';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
@@ -11,6 +12,7 @@ import { AdminRoles } from './pages/admin/AdminRoles';
 import { AdminCambios } from './pages/admin/AdminCambios';
 import { DirectorDashboard } from './pages/director/DirectorDashboard';
 import { DirectorProfesores } from './pages/director/DirectorProfesores';
+import { DirectorAsignaciones } from './pages/director/DirectorAsignaciones';
 import { DirectorReportes } from './pages/director/DirectorReportes';
 import { DirectorMensajes } from './pages/director/DirectorMensajes';
 import { JefeDisciplinaDashboard } from './pages/jefe-disciplina/JefeDisciplinaDashboard';
@@ -82,10 +84,19 @@ function AppRoutes() {
       } />
 
       {/* Director routes */}
-      <Route path="/director/dashboard" element={<DirectorDashboard />} />
+      <Route path="/director/dashboard" element={
+        <ProtectedRoute allowedRoles={['director']}>
+          <DirectorDashboard />
+        </ProtectedRoute>
+      } />
       <Route path="/director/profesores" element={
         <ProtectedRoute allowedRoles={['director']}>
           <DirectorProfesores />
+        </ProtectedRoute>
+      } />
+      <Route path="/director/asignaciones" element={
+        <ProtectedRoute allowedRoles={['director']}>
+          <DirectorAsignaciones />
         </ProtectedRoute>
       } />
       <Route path="/director/reportes" element={
@@ -157,7 +168,9 @@ export default function App() {
     <Router>
       <AuthProvider>
         <DataProvider>
-          <AppRoutes />
+          <NotificationProvider>
+            <AppRoutes />
+          </NotificationProvider>
         </DataProvider>
       </AuthProvider>
     </Router>

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MainLayout } from '../../components/common/Layout';
-import { DirectorReportsView } from './DirectorViews';
+import { DirectorAssignmentsView } from './DirectorViews';
 import './DashboardDirector.css';
 
-export const DirectorReportes = () => {
+export const DirectorAsignaciones = () => {
   const sidebarItems = [
     { id: 'dashboard', icon: '📊', label: 'Dashboard', href: '/director/dashboard' },
     { id: 'professors', icon: '👨‍🏫', label: 'Profesores', href: '/director/profesores' },
@@ -16,12 +16,12 @@ export const DirectorReportes = () => {
     <MainLayout sidebarItems={sidebarItems}>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Reportes</h1>
-          <p className="page-subtitle">Descarga reportes detallados en formato CSV</p>
+          <h1 className="page-title">Asignaciones</h1>
+          <p className="page-subtitle">Visualiza y gestiona las asignaciones de carga docente</p>
         </div>
       </div>
 
-      <DirectorReportsView />
+      <DirectorAssignmentsView />
     </MainLayout>
   );
 };

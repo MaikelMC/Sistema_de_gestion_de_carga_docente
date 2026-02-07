@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MainLayout } from '../../components/common/Layout';
 import { Table, Modal } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import './Dashboard.css';
 
 export const JefeDisciplinaDashboard = () => {
   const { professors, addProfessor, updateProfessor, deleteProfessor, addComment } = useData();
+  const { showSuccess, showError, confirm } = useNotification();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProf, setEditingProf] = useState(null);
   const [messageText, setMessageText] = useState('');
@@ -18,7 +20,6 @@ export const JefeDisciplinaDashboard = () => {
     carrera: ''
   });
   const [errors, setErrors] = useState({});
-  const [toast, setToast] = useState(null);
   const [showAsignaturasDropdown, setShowAsignaturasDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -152,12 +153,6 @@ export const JefeDisciplinaDashboard = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Mostrar toast (alert mejorado)
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
-  };
-
   // Manejar toggle de asignaturas
   const toggleAsignatura = (asignatura) => {
     const currentAsignaturas = [...formData.asignaturas];
@@ -234,15 +229,26 @@ export const JefeDisciplinaDashboard = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este profesor?')) {
-      deleteProfessor(id);
-      showToast('Profesor eliminado exitosamente', 'success');
-    }
+    confirm(
+      {
+        title: 'Eliminar profesor',
+        message: '¿Estás seguro de que deseas eliminar este profesor?',
+        type: 'danger',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      },
+      (confirmed) => {
+        if (confirmed) {
+          deleteProfessor(id);
+          showSuccess('Profesor eliminado exitosamente');
+        }
+      }
+    );
   };
 
   const handleSaveProfessor = () => {
     if (!validateForm()) {
-      showToast('Por favor, corrige los errores en el formulario', 'error');
+      showError('Por favor, corrige los errores en el formulario');
       return;
     }
 
@@ -254,10 +260,10 @@ export const JefeDisciplinaDashboard = () => {
     try {
       if (editingProf) {
         updateProfessor(editingProf.id, professorData);
-        showToast('Profesor actualizado exitosamente', 'success');
+        showSuccess('Profesor actualizado exitosamente');
       } else {
         addProfessor(professorData);
-        showToast('Profesor agregado exitosamente', 'success');
+        showSuccess('Profesor agregado exitosamente');
       }
 
       // Agregar comentario
@@ -272,7 +278,7 @@ export const JefeDisciplinaDashboard = () => {
       setErrors({});
       setShowAsignaturasDropdown(false);
     } catch (error) {
-      showToast('Error al guardar el profesor: ' + error.message, 'error');
+      showError('Error al guardar el profesor: ' + error.message);
     }
   };
 
@@ -311,35 +317,8 @@ export const JefeDisciplinaDashboard = () => {
     { key: 'carrera', label: 'Carrera' },
   ];
 
-  // Efecto para cerrar toast automáticamente
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
   return (
     <MainLayout sidebarItems={sidebarItems}>
-      {/* Toast/Notificación flotante */}
-      {toast && (
-        <div className={`toast-notification toast-${toast.type}`}>
-          <div className="toast-content">
-            <span className="toast-icon">
-              {toast.type === 'success' ? '✅' : '❌'}
-            </span>
-            <span className="toast-message">{toast.message}</span>
-          </div>
-          <button 
-            className="toast-close" 
-            onClick={() => setToast(null)}
-            aria-label="Cerrar notificación"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
       <div className="page-header">
         <div>
           <h1 className="page-title">Gestión de Carga Docente</h1>

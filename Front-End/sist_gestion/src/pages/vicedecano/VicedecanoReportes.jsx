@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MainLayout } from '../../components/common/Layout';
-import { Alert } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import './Dashboard.css';
 
 export const VicedecanoReportes = () => {
   const { professors } = useData();
-  const [alert, setAlert] = useState(null);
+  const { showSuccess } = useNotification();
 
   const handleDownloadCSV = (type) => {
     let filename = 'profesores.csv';
@@ -37,7 +37,7 @@ export const VicedecanoReportes = () => {
     link.download = filename;
     link.click();
 
-    setAlert({ type: 'success', message: `${filename} descargado exitosamente` });
+    showSuccess(`${filename} descargado exitosamente`);
   };
 
   const disciplinas = [...new Set(professors.map(p => p.department))];
@@ -68,10 +68,6 @@ export const VicedecanoReportes = () => {
           <p className="page-subtitle">Descarga y visualiza reportes detallados de profesores</p>
         </div>
       </div>
-
-      {alert && (
-        <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />
-      )}
 
       {/* Estadísticas */}
       <div className="admin-grid">

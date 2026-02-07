@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SearchFilter } from '../../components/common/SearchFilter';
 import { Table } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import './DashboardDirector.css';
 
 export const DirectorProfessorsView = () => {
@@ -74,8 +75,13 @@ export const DirectorProfessorsView = () => {
     { key: 'name', label: 'Nombre del Profesor' },
     { key: 'email', label: 'Correo Electrónico' },
     { key: 'department', label: 'Disciplina' },
-    { key: 'subjects', label: 'Asignaturas', render: (row) => row.subjects.join(', ') },
-    { key: 'faculty', label: 'Facultad' },
+    { key: 'subjects', label: 'Asignaturas', render: (row) => {
+      if (Array.isArray(row.subjects) && row.subjects.length > 0) {
+        return row.subjects.join(', ');
+      }
+      return '-';
+    }},
+    { key: 'faculty', label: 'Facultad', render: (row) => row.faculty || '-' },
   ];
 
   return (
@@ -145,14 +151,18 @@ export const DirectorProfessorsView = () => {
                     </div>
                     <div className="info-row">
                       <span className="label">Facultad:</span>
-                      <span className="value">{prof.faculty}</span>
+                      <span className="value">{prof.faculty || '-'}</span>
                     </div>
                     <div className="info-row">
                       <span className="label">Asignaturas:</span>
                       <div className="subjects-list">
-                        {prof.subjects.map((subject, idx) => (
-                          <span key={idx} className="subject-tag">{subject}</span>
-                        ))}
+                        {Array.isArray(prof.subjects) && prof.subjects.length > 0 ? (
+                          prof.subjects.map((subject, idx) => (
+                            <span key={idx} className="subject-tag">{subject}</span>
+                          ))
+                        ) : (
+                          <span className="no-subjects">Sin asignaturas asignadas</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -170,15 +180,9 @@ export const DirectorProfessorsView = () => {
   );
 };
 
-export const DirectorReportsView = ({ setAlert: setParentAlert }) => {
+export const DirectorReportsView = () => {
   const { professors, disciplines } = useData();
-  const [alert, setAlert] = useState(null);
-
-  // Usar setAlert local o de parent
-  const notifyAlert = (type, message) => {
-    setAlert({ type, message });
-    if (setParentAlert) setParentAlert({ type, message });
-  };
+  const { showSuccess, showError } = useNotification();
 
   const statsPerDiscipline = disciplines.map(d => ({
     name: d.name,
@@ -265,7 +269,7 @@ export const DirectorReportsView = ({ setAlert: setParentAlert }) => {
     link.download = filename;
     link.click();
 
-    notifyAlert('success', `${filename} descargado exitosamente`);
+    showSuccess(`${filename} descargado exitosamente`);
   };
 
   return (
@@ -276,13 +280,6 @@ export const DirectorReportsView = ({ setAlert: setParentAlert }) => {
           <p>Descarga reportes detallados en formato CSV</p>
         </div>
       </div>
-
-      {alert && (
-        <div className={`alert alert-${alert.type}`}>
-          <span>{alert.message}</span>
-          <button className="alert-close" onClick={() => setAlert(null)}>✕</button>
-        </div>
-      )}
 
       <div className="reports-section">
         <div className="reports-grid">
@@ -391,6 +388,217 @@ export const DirectorReportsView = ({ setAlert: setParentAlert }) => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+export const DirectorAssignmentsView = () => {
+  const { professors } = useData();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('professor');
+
+  // Generar asignaciones desde profesores
+  const assignments = professors.flatMap(prof => 
+    (prof.subjects || []).map(subject => ({
+      id: `${prof.id}-${subject}`,
+      professor: prof.name,
+      email: prof.email,
+      faculty: prof.faculty,
+      discipline: prof.department,
+      subject: subject,
+      load: prof.load || 0,
+      status: prof.available ? 'activa' : 'inactiva',
+      date: new Date().toLocaleDateString()
+    }))
+  );
+
+  // Filtrado
+  let filtered = assignments.filter(a => {
+    const matchSearch = a.professor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       a.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       a.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = filterStatus === 'all' || a.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+
+  // Ordenamiento
+  filtered = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case 'professor':
+        return a.professor.localeCompare(b.professor);
+      case 'subject':
+        return a.subject.localeCompare(b.subject);
+      case 'load':
+        return b.load - a.load;
+      default:
+        return 0;
+    }
+  });
+
+  const stats = {
+    total: assignments.length,
+    active: assignments.filter(a => a.status === 'activa').length,
+    inactive: assignments.filter(a => a.status === 'inactiva').length,
+    avgLoad: assignments.length > 0 ? (assignments.reduce((sum, a) => sum + a.load, 0) / assignments.length).toFixed(1) : 0
+  };
+
+  return (
+    <div className="director-view">
+      <div className="view-header">
+        <div>
+          <h2>📋 Asignaciones de Carga Docente</h2>
+          <p>Gestiona y visualiza todas las asignaciones</p>
+        </div>
+      </div>
+
+      {/* Estadísticas */}
+      <div className="stats-grid-assignments">
+        <div className="stat-card-assignment primary">
+          <div className="stat-card-assignment-content">
+            <div className="stat-card-assignment-top">
+              <span className="stat-icon-assignment">📚</span>
+              <span className="stat-label-assignment">Total</span>
+            </div>
+            <div className="stat-value-assignment">{stats.total}</div>
+            <div className="stat-description-assignment">Asignaciones</div>
+          </div>
+        </div>
+
+        <div className="stat-card-assignment success">
+          <div className="stat-card-assignment-content">
+            <div className="stat-card-assignment-top">
+              <span className="stat-icon-assignment">✅</span>
+              <span className="stat-label-assignment">Activas</span>
+            </div>
+            <div className="stat-value-assignment">{stats.active}</div>
+            <div className="stat-description-assignment">En servicio</div>
+          </div>
+        </div>
+
+        <div className="stat-card-assignment warning">
+          <div className="stat-card-assignment-content">
+            <div className="stat-card-assignment-top">
+              <span className="stat-icon-assignment">⏸️</span>
+              <span className="stat-label-assignment">Inactivas</span>
+            </div>
+            <div className="stat-value-assignment">{stats.inactive}</div>
+            <div className="stat-description-assignment">Suspendidas</div>
+          </div>
+        </div>
+
+        <div className="stat-card-assignment info">
+          <div className="stat-card-assignment-content">
+            <div className="stat-card-assignment-top">
+              <span className="stat-icon-assignment">⏱️</span>
+              <span className="stat-label-assignment">Promedio</span>
+            </div>
+            <div className="stat-value-assignment">{stats.avgLoad}h</div>
+            <div className="stat-description-assignment">Carga horaria</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filtros y controles */}
+      <div className="filters-section">
+        <div className="filter-group">
+          <input
+            type="text"
+            placeholder="Buscar por profesor, asignatura o email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+
+        <div className="filter-group">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">Todas las asignaciones</option>
+            <option value="activa">Activas</option>
+            <option value="inactiva">Inactivas</option>
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="filter-select"
+          >
+            <option value="professor">Ordenar por profesor</option>
+            <option value="subject">Ordenar por asignatura</option>
+            <option value="load">Ordenar por carga horaria</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Tabla de asignaciones */}
+      <div className="table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Profesor</th>
+              <th>Email</th>
+              <th>Facultad</th>
+              <th>Disciplina</th>
+              <th>Asignatura</th>
+              <th>Carga (h)</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length > 0 ? (
+              filtered.map((assignment) => (
+                <tr key={assignment.id}>
+                  <td className="professor-cell">
+                    <div className="avatar" style={{ backgroundColor: '#007bff' }}>
+                      {assignment.professor.charAt(0)}
+                    </div>
+                    {assignment.professor}
+                  </td>
+                  <td>{assignment.email}</td>
+                  <td>
+                    <span className="badge badge-info">{assignment.faculty}</span>
+                  </td>
+                  <td>
+                    <span className="badge badge-secondary">{assignment.discipline}</span>
+                  </td>
+                  <td>
+                    <span className="subject-badge">{assignment.subject}</span>
+                  </td>
+                  <td>
+                    <span className="load-badge">{assignment.load}h</span>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${assignment.status === 'activa' ? 'active' : 'inactive'}`}>
+                      {assignment.status === 'activa' ? '✓ Activa' : '✗ Inactiva'}
+                    </span>
+                  </td>
+                  <td className="actions-cell">
+                    <button className="action-btn edit" title="Editar">✏️</button>
+                    <button className="action-btn delete" title="Eliminar">🗑️</button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="empty-cell">
+                  <div className="empty-state">
+                    <p>No hay asignaciones que coincidan con los filtros</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Resumen por facultad eliminado por solicitud - espacio reservado si se necesita más adelante */}
     </div>
   );
 };

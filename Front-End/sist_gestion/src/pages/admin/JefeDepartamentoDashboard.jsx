@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { MainLayout } from '../../components/common/Layout';
-import { Table, Modal, Alert } from '../../components/common/Table';
+import { Table, Modal } from '../../components/common/Table';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import './Dashboard.css';
 
 export const JefeDepartamentoDashboard = () => {
   const { professors, addProfessor, updateProfessor, deleteProfessor, addComment } = useData();
+  const { showSuccess, showError, confirm } = useNotification();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProf, setEditingProf] = useState(null);
-  const [alert, setAlert] = useState(null);
   const [showMessageForm, setShowMessageForm] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [formData, setFormData] = useState({
@@ -41,24 +42,35 @@ export const JefeDepartamentoDashboard = () => {
   };
 
   const handleDelete = (id) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este profesor?')) {
-      deleteProfessor(id);
-      setAlert({ type: 'success', message: 'Profesor eliminado exitosamente' });
-    }
+    confirm(
+      {
+        title: 'Eliminar profesor',
+        message: '¿Estás seguro de que deseas eliminar este profesor?',
+        type: 'danger',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      },
+      (confirmed) => {
+        if (confirmed) {
+          deleteProfessor(id);
+          showSuccess('Profesor eliminado exitosamente');
+        }
+      }
+    );
   };
 
   const handleSaveProfessor = () => {
     if (!formData.name || !formData.email || !messageText) {
-      setAlert({ type: 'error', message: 'Completa todos los campos incluyendo el mensaje' });
+      showError('Completa todos los campos incluyendo el mensaje');
       return;
     }
 
     if (editingProf) {
       updateProfessor(editingProf.id, formData);
-      setAlert({ type: 'success', message: 'Profesor actualizado' });
+      showSuccess('Profesor actualizado');
     } else {
       addProfessor(formData);
-      setAlert({ type: 'success', message: 'Profesor agregado' });
+      showSuccess('Profesor agregado');
     }
 
     addComment({
@@ -92,14 +104,6 @@ export const JefeDepartamentoDashboard = () => {
           </button>
         </div>
       </div>
-
-      {alert && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert(null)}
-        />
-      )}
 
       <div className="admin-grid">
         <div className="stats-card">

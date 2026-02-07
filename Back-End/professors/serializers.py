@@ -10,6 +10,8 @@ class ProfessorSerializer(serializers.ModelSerializer):
     contract_type_display = serializers.CharField(source='get_contract_type_display', read_only=True)
     created_by_name = serializers.SerializerMethodField()
     active_assignments_count = serializers.SerializerMethodField()
+    subjects_list = serializers.SerializerMethodField()
+    faculties_list = serializers.SerializerMethodField()
     
     class Meta:
         model = Professor
@@ -20,6 +22,7 @@ class ProfessorSerializer(serializers.ModelSerializer):
             'contract_type', 'contract_type_display', 'specialty',
             'years_of_experience', 'is_active', 'created_by', 
             'created_by_name', 'active_assignments_count',
+            'subjects_list', 'faculties_list',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
@@ -29,6 +32,16 @@ class ProfessorSerializer(serializers.ModelSerializer):
     
     def get_active_assignments_count(self, obj):
         return obj.get_active_assignments().count()
+    
+    def get_subjects_list(self, obj):
+        """Obtiene las asignaturas asignadas al profesor desde sus assignments."""
+        assignments = obj.get_active_assignments().select_related('subject')
+        return list(set(a.subject.name for a in assignments))
+    
+    def get_faculties_list(self, obj):
+        """Obtiene las facultades donde el profesor tiene asignaciones."""
+        assignments = obj.get_active_assignments().select_related('faculty')
+        return list(set(a.faculty.name for a in assignments))
 
 
 class ProfessorCreateSerializer(serializers.ModelSerializer):
@@ -54,6 +67,8 @@ class ProfessorListSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     scientific_degree_display = serializers.CharField(source='get_scientific_degree_display', read_only=True)
     contract_type_display = serializers.CharField(source='get_contract_type_display', read_only=True)
+    subjects_list = serializers.SerializerMethodField()
+    faculties_list = serializers.SerializerMethodField()
     
     class Meta:
         model = Professor
@@ -62,8 +77,17 @@ class ProfessorListSerializer(serializers.ModelSerializer):
             'email', 'phone', 'identification', 'category', 'category_display',
             'scientific_degree', 'scientific_degree_display',
             'contract_type', 'contract_type_display', 'specialty',
-            'years_of_experience', 'is_active', 'created_at'
+            'years_of_experience', 'is_active', 'created_at',
+            'subjects_list', 'faculties_list'
         ]
+    
+    def get_subjects_list(self, obj):
+        assignments = obj.get_active_assignments().select_related('subject')
+        return list(set(a.subject.name for a in assignments))
+    
+    def get_faculties_list(self, obj):
+        assignments = obj.get_active_assignments().select_related('faculty')
+        return list(set(a.faculty.name for a in assignments))
 
 
 class ProfessorExportSerializer(serializers.ModelSerializer):

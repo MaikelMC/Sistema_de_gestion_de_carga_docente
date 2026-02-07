@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { professorsAPI, academicAPI, commentsAPI } from '../services/api';
+import { professorsAPI, academicAPI, commentsAPI, assignmentsAPI } from '../services/api';
 import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
@@ -18,33 +18,61 @@ export const DataProvider = ({ children }) => {
   const [disciplines, setDisciplines] = useState([]);
   const [comments, setComments] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Transformar datos del backend al formato que espera el frontend
-  const transformProfessor = (prof) => ({
-    id: prof.id,
-    name: prof.full_name || `${prof.first_name} ${prof.last_name}`,
-    email: prof.email,
-    department: prof.specialty || '',
-    subjects: [],
-    faculty: '',
-    createdAt: prof.created_at,
-    // Mantener datos originales del backend
-    first_name: prof.first_name,
-    last_name: prof.last_name,
-    phone: prof.phone,
-    identification: prof.identification,
-    category: prof.category,
-    category_display: prof.category_display,
-    scientific_degree: prof.scientific_degree,
-    scientific_degree_display: prof.scientific_degree_display,
-    contract_type: prof.contract_type,
-    contract_type_display: prof.contract_type_display,
-    specialty: prof.specialty,
-    years_of_experience: prof.years_of_experience,
-    is_active: prof.is_active,
-  });
+  const transformProfessor = (prof, assignmentsData = []) => {
+    // Usar subjects_list y faculties_list del serializer si están disponibles
+    let subjects = [];
+    let faculty = '';
+    
+    if (prof.subjects_list && prof.subjects_list.length > 0) {
+      subjects = prof.subjects_list;
+    } else {
+      // Fallback: buscar desde asignaciones cargadas por separado
+      const profAssignments = assignmentsData.filter(a => a.professor === prof.id);
+      const subjectsSet = new Set();
+      profAssignments.forEach(a => { if (a.subject_name) subjectsSet.add(a.subject_name); });
+      subjects = Array.from(subjectsSet);
+    }
+    
+    if (prof.faculties_list && prof.faculties_list.length > 0) {
+      faculty = prof.faculties_list[0];
+    } else {
+      const profAssignments = assignmentsData.filter(a => a.professor === prof.id);
+      const facultiesSet = new Set();
+      profAssignments.forEach(a => { if (a.faculty_name) facultiesSet.add(a.faculty_name); });
+      const facArr = Array.from(facultiesSet);
+      faculty = facArr.length > 0 ? facArr[0] : '';
+    }
+    
+    return {
+      id: prof.id,
+      name: prof.full_name || `${prof.first_name} ${prof.last_name}`,
+      email: prof.email,
+      department: prof.specialty || '',
+      subjects,
+      faculty,
+      faculties: prof.faculties_list || [],
+      createdAt: prof.created_at,
+      // Mantener datos originales del backend
+      first_name: prof.first_name,
+      last_name: prof.last_name,
+      phone: prof.phone,
+      identification: prof.identification,
+      category: prof.category,
+      category_display: prof.category_display,
+      scientific_degree: prof.scientific_degree,
+      scientific_degree_display: prof.scientific_degree_display,
+      contract_type: prof.contract_type,
+      contract_type_display: prof.contract_type_display,
+      specialty: prof.specialty,
+      years_of_experience: prof.years_of_experience,
+      is_active: prof.is_active,
+    };
+  };
 
   const transformComment = (comment) => ({
     id: comment.id,
@@ -69,17 +97,27 @@ export const DataProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const [profsRes, discRes, commRes] = await Promise.allSettled([
+      const [profsRes, discRes, commRes, assignRes] = await Promise.allSettled([
         professorsAPI.getAll(),
         academicAPI.getDisciplines(),
         commentsAPI.getAll(),
+        assignmentsAPI.getAll(),
       ]);
+
+      let assignmentsData = [];
+      if (assignRes.status === 'fulfilled') {
+        const assignData = Array.isArray(assignRes.value.data)
+          ? assignRes.value.data
+          : assignRes.value.data.results || [];
+        assignmentsData = assignData;
+        setAssignments(assignmentsData);
+      }
 
       if (profsRes.status === 'fulfilled') {
         const profsData = Array.isArray(profsRes.value.data)
           ? profsRes.value.data
           : profsRes.value.data.results || [];
-        setProfessors(profsData.map(transformProfessor));
+        setProfessors(profsData.map(prof => transformProfessor(prof, assignmentsData)));
       }
 
       if (discRes.status === 'fulfilled') {
@@ -242,6 +280,7 @@ export const DataProvider = ({ children }) => {
     disciplines,
     comments,
     messages,
+    assignments,
     loading,
     error,
     addProfessor,

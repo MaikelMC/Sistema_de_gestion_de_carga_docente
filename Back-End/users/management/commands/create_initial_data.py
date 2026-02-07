@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from academic.models import Faculty, Discipline, Subject
 from professors.models import Professor
+from assignments.models import Assignment
 
 User = get_user_model()
 
@@ -31,6 +32,9 @@ class Command(BaseCommand):
         
         self.stdout.write("\n" + self.style.HTTP_INFO("--- Profesores ---"))
         professors = self.create_professors(jefe)
+        
+        self.stdout.write("\n" + self.style.HTTP_INFO("--- Asignaciones ---"))
+        self.create_assignments(professors, subjects, faculties, jefe)
         
         self.stdout.write("\n" + "="*50)
         self.stdout.write(self.style.SUCCESS("¡Datos iniciales creados exitosamente!"))
@@ -319,5 +323,85 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.WARNING(f"! Profesor {professor.full_name} ya existe"))
             created.append(professor)
+        
+        return created
+
+    def create_assignments(self, professors, subjects, faculties, assigned_by=None):
+        """Crear asignaciones de ejemplo vinculando profesores con asignaturas y facultades."""
+        if not professors or not subjects or not faculties:
+            self.stdout.write(self.style.WARNING("! No se pueden crear asignaciones: faltan datos"))
+            return []
+        
+        # Mapear profesores por specialty para asignar asignaturas coherentes
+        # specialty -> discipline code mapping
+        specialty_to_discipline = {
+            'Técnicas de Programación de Computadoras': 'TPC',
+            'Matemática': 'MAT',
+            'Ingeniería y Gestión de Software': 'IGS',
+            'Inteligencia Computacional': 'IC',
+            'Educación Física': 'EF',
+            'Física': 'FIS',
+            'Práctica Profesional': 'PP',
+            'Sistemas Digitales': 'SD',
+            'Gestión Organizacional': 'GO',
+            'Marxismo Leninismo': 'ML',
+            'Historia de Cuba': 'HC',
+            'Idioma Extranjero': 'IE',
+            'Preparación para la Defensa': 'PD',
+        }
+        
+        # Crear un dict de subjects por discipline code
+        subjects_by_discipline = {}
+        for subj in subjects:
+            disc_code = subj.discipline.code
+            if disc_code not in subjects_by_discipline:
+                subjects_by_discipline[disc_code] = []
+            subjects_by_discipline[disc_code].append(subj)
+        
+        created = []
+        faculty_idx = 0
+        
+        for professor in professors:
+            specialty = professor.specialty or ''
+            disc_code = specialty_to_discipline.get(specialty)
+            
+            # Obtener asignaturas de su disciplina
+            prof_subjects = []
+            if disc_code and disc_code in subjects_by_discipline:
+                prof_subjects = subjects_by_discipline[disc_code][:3]  # Max 3 asignaturas
+            
+            if not prof_subjects:
+                # Asignar al menos alguna asignatura disponible
+                all_subjects = list(Subject.objects.all()[:2])
+                prof_subjects = all_subjects
+            
+            # Asignar una facultad de forma distribuida
+            faculty = faculties[faculty_idx % len(faculties)]
+            faculty_idx += 1
+            
+            for subj in prof_subjects:
+                assignment, was_created = Assignment.objects.get_or_create(
+                    professor=professor,
+                    subject=subj,
+                    faculty=faculty,
+                    assignment_type='LECTURE',
+                    academic_year='2025-2026',
+                    semester=1,
+                    defaults={
+                        'hours_per_week': subj.hours_per_week or 4,
+                        'group': 'G1',
+                        'assigned_by': assigned_by,
+                        'is_active': True,
+                    }
+                )
+                if was_created:
+                    self.stdout.write(self.style.SUCCESS(
+                        f"✓ Asignación: {professor.full_name} -> {subj.name} ({faculty.name})"
+                    ))
+                else:
+                    self.stdout.write(self.style.WARNING(
+                        f"! Asignación {professor.full_name} -> {subj.name} ya existe"
+                    ))
+                created.append(assignment)
         
         return created

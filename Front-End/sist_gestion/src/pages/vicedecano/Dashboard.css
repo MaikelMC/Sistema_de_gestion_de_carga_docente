@@ -10,6 +10,14 @@
 @media (max-width: 768px) {
   .vicedecano-stats {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.section h2 {
+  font-size: 20px;
+  color: #0052cc;
+  margin-top: 0;
+  margin-bottom: 20px;
   padding-bottom: 12px;
   border-bottom: 2px solid #e8f0ff;
 }
@@ -118,6 +126,46 @@
 .message-time {
   font-size: 12px;
   color: #999;
+}
+
+/* Vicedecano Professors Table */
+.professors-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.professors-table thead {
+  background: linear-gradient(135deg, #1a3a52 0%, #0f6db9 100%);
+  border-bottom: 2px solid #0f6db9;
+}
+
+.professors-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.professors-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: white;
+  color: #333;
+}
+
+.professors-table tbody tr {
+  background: white;
+}
+
+.professors-table tbody tr:hover {
+  background: #f0f7ff;
+}
+
+.professors-table tbody tr:nth-child(even) {
+  background: white;
 }
 
 /* Responsive */

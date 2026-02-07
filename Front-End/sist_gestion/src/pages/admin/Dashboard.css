@@ -216,25 +216,35 @@
 }
 
 .users-table th {
-  background: #f9fafb;
+  background: linear-gradient(135deg, #1a3a52 0%, #0f6db9 100%);
   padding: 12px 16px;
   text-align: left;
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: white;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid #0f6db9;
 }
 
 .users-table td {
   padding: 12px 16px;
   border-bottom: 1px solid #e0e0e0;
   font-size: 14px;
+  background: white;
+  color: #333;
 }
 
-.users-table tr:hover {
-  background: #f9fafb;
+.users-table tbody tr {
+  background: white;
+}
+
+.users-table tbody tr:hover {
+  background: #f0f7ff;
+}
+
+.users-table tbody tr:nth-child(even) {
+  background: white;
 }
 
 .status-badge {

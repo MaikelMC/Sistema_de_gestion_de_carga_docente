@@ -4,17 +4,17 @@
 export const CONFIG = {
   // API
   API: {
-    BASE_URL: process.env.VITE_API_URL || 'http://localhost:3000/api',
+    BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
     TIMEOUT: 10000,
     RETRY_ATTEMPTS: 3
   },
 
   // Autenticación
   AUTH: {
-    TOKEN_KEY: 'app_token',
-    USER_KEY: 'app_user',
+    TOKEN_KEY: 'token',
+    USER_KEY: 'user',
     TOKEN_EXPIRY: 24 * 60 * 60 * 1000, // 24 horas
-    REFRESH_TOKEN_KEY: 'app_refresh_token'
+    REFRESH_TOKEN_KEY: 'refresh_token'
   },
 
   // Paginación

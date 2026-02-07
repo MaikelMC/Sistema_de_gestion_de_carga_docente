@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import Cookies from 'js-cookie';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -17,13 +18,16 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simular verificación de autenticación
+    // Verificar autenticación existente al cargar
     const userCookie = Cookies.get('user');
-    if (userCookie) {
+    const token = Cookies.get('token');
+    if (userCookie && token) {
       try {
         setUser(JSON.parse(userCookie));
       } catch (err) {
         Cookies.remove('user');
+        Cookies.remove('token');
+        Cookies.remove('refresh_token');
       }
     }
     setLoading(false);
@@ -33,53 +37,23 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      // Simular llamada al API
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const response = await authAPI.login(email, password);
+      const { access, refresh, user: userData } = response.data;
 
-      // Datos de prueba
-      const mockUsers = {
-        'admin@uci.edu.cu': {
-          id: 1,
-          email: 'admin@uci.edu.cu',
-          name: 'Administrador',
-          role: 'admin',
-          department: null
-        },
-        'director@uci.edu.cu': {
-          id: 2,
-          email: 'director@uci.edu.cu',
-          name: 'Director de Formación',
-          role: 'director',
-          department: null
-        },
-        'jefe@uci.edu.cu': {
-          id: 3,
-          email: 'jefe@uci.edu.cu',
-          name: 'Jefe de Disciplina',
-          role: 'jefe_disciplina',
-          department: 'Programación'
-        },
-        'vicedecano@uci.edu.cu': {
-          id: 4,
-          email: 'vicedecano@uci.edu.cu',
-          name: 'Vicedecano de Formación',
-          role: 'vicedecano',
-          department: null
-        }
-      };
+      // Guardar tokens y datos del usuario en cookies
+      Cookies.set('token', access, { expires: 1 }); // 1 día
+      Cookies.set('refresh_token', refresh, { expires: 7 }); // 7 días
+      Cookies.set('user', JSON.stringify(userData), { expires: 7 });
 
-      if (mockUsers[email] && password === '123456') {
-        const userData = mockUsers[email];
-        setUser(userData);
-        Cookies.set('user', JSON.stringify(userData), { expires: 7 });
-        Cookies.set('token', 'token_' + Date.now(), { expires: 7 });
-        return userData;
-      } else {
-        throw new Error('Credenciales inválidas');
-      }
+      setUser(userData);
+      return userData;
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const message =
+        err.response?.data?.detail ||
+        err.response?.data?.non_field_errors?.[0] ||
+        'Credenciales inválidas';
+      setError(message);
+      throw new Error(message);
     } finally {
       setLoading(false);
     }
@@ -89,19 +63,24 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      // Simular registro
-      const newUser = {
-        id: Math.random(),
-        ...data,
-        role: 'jefe_disciplina'
-      };
-      setUser(newUser);
-      Cookies.set('user', JSON.stringify(newUser), { expires: 7 });
-      return newUser;
+      const response = await authAPI.register(data);
+      const { access, refresh, user: userData } = response.data;
+
+      // Auto-login después del registro
+      Cookies.set('token', access, { expires: 1 });
+      Cookies.set('refresh_token', refresh, { expires: 7 });
+      Cookies.set('user', JSON.stringify(userData), { expires: 7 });
+
+      setUser(userData);
+      return userData;
     } catch (err) {
-      setError(err.message);
-      throw err;
+      const message =
+        err.response?.data?.detail ||
+        err.response?.data?.email?.[0] ||
+        err.response?.data?.password?.[0] ||
+        'Error al registrar el usuario';
+      setError(message);
+      throw new Error(message);
     } finally {
       setLoading(false);
     }
@@ -111,6 +90,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     Cookies.remove('user');
     Cookies.remove('token');
+    Cookies.remove('refresh_token');
   };
 
   const value = {

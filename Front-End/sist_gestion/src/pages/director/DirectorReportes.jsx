@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MainLayout } from '../../components/common/Layout';
 import { Alert } from '../../components/common/Table';
 import { DirectorReportsView } from './DirectorViews';
-import './Dashboard.css';
+import './DashboardDirector.css';
 
 export const DirectorReportes = () => {
   const [alert, setAlert] = useState(null);

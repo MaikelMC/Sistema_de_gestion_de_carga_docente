@@ -621,14 +621,27 @@ export const JefeDisciplinaDashboard = () => {
 
           <div className="form-group">
             <label htmlFor="carrera">Carrera</label>
-            <input
-              id="carrera"
+            <select
+             id="carrera"
               name="carrera"
-              type="text"
               value={formData.carrera}
               onChange={handleInputChange}
-              placeholder="Ingeniería en Ciencias Informáticas"
-            />
+              onBlur={(e) => validateField('carrera', e.target.value)}
+              className={errors.carrera ? 'input-error' : ''}
+              aria-describedby={errors.carrera ? 'carrera-error' : undefined}
+              aria-invalid={!!errors.carrera}
+            >
+               <option value="">Selecciona una carrera</option>
+                <option value="Ciencias Informáticas">Ingeniería en Ciencias Informáticas</option>
+                <option value="Bioinformática">Ingeniería en Bioinformática</option>
+                <option value="Ciberseguridad">Ingeniería en Ciberseguridad</option>
+             </select>
+              {errors.carrera && (
+              <div id="carrera-error" className="validation-error" role="alert">
+                <span className="error-icon">⚠</span>
+                {errors.carrera}  
+                 </div>
+              )}
           </div>
 
           <div className="form-group">
